@@ -5,36 +5,37 @@ import csv
 
 batchFile = sys.argv[1]
 SampleSheetUsed = sys.argv[2]
-outFile = sys.argv[3] #should end with _mqc.json for MultiQC
+outFile = sys.argv[3]  # should end with _mqc.json for MultiQC
 
-## Get all lines from get_stats.py output
+# Get all lines from get_stats.py output
 with open(batchFile, 'r') as bFile:
     linesUnordered = [line.strip().split(',') for line in bFile]
 unOrdSamples = [x[0] for x in linesUnordered]
 
-## Get the order from SampleSheetUsed
+# Get the order from SampleSheetUsed
 samples = []
 startReading = 0
 with open(SampleSheetUsed, 'r') as file:
     lines = [line.strip() for line in file]
     for line in lines:
-        if startReading == 1: ##Once reached [Data]
+        if startReading == 1:  # Once reached [Data]
             samples.append(line.split(',')[1])
         if line.startswith("[Data]"):
             startReading = 1
 # samples.pop() #Remove any empty are there empty line at end?!
-samples = samples[1:] #Remove header from SampleSheetUsed
-sampleSheetSamples = [string for string in samples if string != ""]#Remove empty fields
-#Remove any HD829 because other pipeline
+samples = samples[1:]  # Remove header from SampleSheetUsed
+sampleSheetSamples = [string for string in samples if string != ""]  # Remove empty fields
+# Remove any HD829 because other pipeline
 # HDindices = [i for i, x in enumerate(sampleSheetSamples) if x.startswith("HD829")]
 # if len(HDindices) != 0 :
 #     for index in HDindices:
 #         sampleSheetSamples.pop(index)
 
-header = ['Sample','Tot seq','Reads mapped','Avg Coverage','Breadth 500x','Reads paired [%]','Insert size','Insert size s.d.','Average quality','Duplicates [%]','Breadth 50x','Breadth 100x','Bases on target']
+header = ['Sample', 'Tot seq', 'Reads mapped', 'Avg Coverage', 'Breadth 500x', 'Reads paired [%]', 'Insert size',
+          'Insert size s.d.', 'Average quality', 'Duplicates [%]', 'Breadth 50x', 'Breadth 100x', 'Bases on target']
 
 with open(outFile, 'w') as file:
- ##write all config for custom table
+    # Write all config for custom table
     file.write("{\n")
     file.write("  \"id\": \"qc_table\",\n")
     file.write("  \"section_name\": \"QC stats\",\n")
@@ -44,7 +45,7 @@ with open(outFile, 'w') as file:
     file.write("    \"namespace\": \"qc-table\"\n")
     file.write("  },\n")
 
-    file.write("  \"headers\": {\n") ##All header configs
+    file.write("  \"headers\": {\n")  # All header configs
     file.write('    \"Avg Coverage\": {\n')
     file.write("      \"title\": \"Average Coverage\",\n")
     file.write("      \"description\": \"Avg cov of bedfile from CARTool\"\n")
@@ -113,24 +114,24 @@ with open(outFile, 'w') as file:
     file.write("      \"title\": \"Insert size s.d.\",\n")
     file.write("      \"description\": \"Insert size standard deviation from Samtools\"\n")
     file.write("    }\n")
-    file.write("  },\n") #Close headers
+    file.write("  },\n")  # Close headers
 
-    ## The table in samplesheet order
+    # The table in samplesheet order
     file.write("  \"data\": {\n")
     for sample in sampleSheetSamples:
         line = linesUnordered[unOrdSamples.index(sample)]
-        ## 'sample1' :{ 4spaces
+        # 'sample1' :{ 4spaces
         file.write("    \""+sample+"\": {\n")
-        ## 'col1': value1, 6spaces
+        # 'col1': value1, 6spaces
         for i in range(1, len(header)):
             if i == len(header)-1:
-                file.write("      \""+header[i]+"\": "+ line[i]+ "\n")
+                file.write("      \""+header[i]+"\": " + line[i] + "\n")
             else:
-                file.write("      \""+header[i]+"\": "+ line[i]+ ",\n")
+                file.write("      \""+header[i]+"\": " + line[i] + ",\n")
         if sample == sampleSheetSamples[-1]:
             file.write('    }\n')
         else:
             file.write('    },\n')
-    file.write('  }\n') #close data
+    file.write('  }\n')  # close data
 
     file.write('}')

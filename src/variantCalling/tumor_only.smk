@@ -1,36 +1,29 @@
-localrules: fixAF
-include:    "freebayes.smk"
+localrules:
+    fixAF,
 
-# include:    "lofreq_T.smk"
 
-# include:    "snver.smk" #since based on samtools cannot handle high base qualities, everything becomes N
+include: "freebayes.smk"
+include: "vardict_T.smk"
+include: "pisces.smk"
+include: "mutect2.smk"
 
-include:    "vardict_T.smk"
 
-include:    "pisces.smk"
-
-include:    "mutect2.smk"
-#include:    "manta_T.smk"
 rule fixAF:
     input:
-        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf"
+        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf",
     output:
-        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf")
+        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
     params:
-        config["programdir"]["dir"]
+        config["programdir"]["dir"],
     log:
-        "logs/variantCalling/fixAF/{method}/{sample}_{seqID}.log"
+        "logs/variantCalling/fixAF/{method}/{sample}_{seqID}.log",
     singularity:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/fix_af.py {input} {output}) &> {log}"
 
 
-include:    "bgzips.smk"
-
-include:    "normalize.smk"
-
-
-include:    "recall.smk"
-
-include:    "vep.smk"
+include: "bgzips.smk"
+include: "normalize.smk"
+include: "recall.smk"
+include: "vep.smk"

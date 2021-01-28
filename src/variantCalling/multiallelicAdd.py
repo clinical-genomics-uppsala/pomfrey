@@ -9,7 +9,7 @@ multiVcf = VariantFile(sys.argv[2])
 new_header = vcf_in.header
 # new_header.generic.add("Multi allelic variants added from Pisces.")
 
-vcf_out = VariantFile(sys.argv[3], 'w',header=new_header)
+vcf_out = VariantFile(sys.argv[3], 'w', header=new_header)
 
 for record in vcf_in.fetch():
     vcf_out.write(record)
