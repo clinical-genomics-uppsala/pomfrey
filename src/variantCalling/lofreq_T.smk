@@ -9,7 +9,7 @@ rule lofreq:
         "logs/variantCalling/lofreq_call/{sample}_{seqID}.log"
     params:
         extra = "-l "+ config["bed"]["bedfile"]
-    singularity:
+    container:
         config["singularitys"]["lofreq"]
     threads: 8
     shell:

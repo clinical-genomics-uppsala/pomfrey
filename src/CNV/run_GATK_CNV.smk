@@ -11,8 +11,8 @@ rule collectReadCounts:
     params:
         mergingRule = "OVERLAPPING_ONLY"
     log:
-        "logs/CNV/{sample}_{seqID}.collectReadCounts.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}.collectReadCounts.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
           "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} \
@@ -26,8 +26,8 @@ rule denoiseReadCounts:
         stdCopyRatio = "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.standardizedCR.tsv",
         denoisedCopyRatio = "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.denoisedCR.tsv"
     log:
-        "logs/CNV/{sample}_{seqID}-denoise.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}-denoise.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} \
@@ -44,8 +44,8 @@ rule collectAllelicCounts:
     output:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.allelicCounts.tsv"
     log:
-        "logs/CNV/{sample}_{seqID}_allelicCounts.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}_allelicCounts.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} \
@@ -70,8 +70,8 @@ rule modelSegments:
         outDir = "CNV/{sample}_{seqID}/",
         outPrefix = "{sample}_{seqID}_clean"
     log:
-        "logs/CNV/{sample}_{seqID}_modelSegments.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}_modelSegments.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' ModelSegments \
@@ -85,8 +85,8 @@ rule callCopyRatioSegments:
     output:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg"
     log:
-        "logs/CNV/{sample}_{seqID}_calledCRSegments.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}_calledCRSegments.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk CallCopyRatioSegments --input {input} \
@@ -101,12 +101,12 @@ rule plotModeledSegments:
     output:
         "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png" #"Results/{sample}_{seqID}/Reports/{sample}_{seqID}_clean.calledCNVs.modeled.png"
     params:
-        outDir = "CNV/", #"Results/{sample}_{seqID}/Reports",
-        outPrefix = "{sample}_{seqID}_clean.calledCNVs",  #--minimum-contig-length 46709983
-        pointSize = 2.0
+        outDir="CNV/",
+        outPrefix="{sample}_{seqID}_clean.calledCNVs",  #--minimum-contig-length 46709983
+        pointSize=2.0,
     log:
-        "logs/CNV/{sample}_{seqID}_plotSegments.log"
-    singularity:
+        "logs/CNV/{sample}_{seqID}_plotSegments.log",
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} \
@@ -126,7 +126,7 @@ rule plotModeledSegments:
 #         # cnv_done = "Tumor/{sample}_cnv_done.txt"
 #     params:
 #         outdir = "CNV/"#"Results/{sample}_{seqID}/Reports",
-#     singularity:
+#     container:
 #         config["singularitys"]["python"]
 #     log:
 #         "logs/Tumor/{sample}_{seqID}_relevant_cnvs-gatk4.log"

@@ -11,7 +11,7 @@ rule vep:
         # "--everything --check_existing --pick"  #--exclude_null_alleles
     log:
         "logs/variantCalling/vep/{sample}_{seqID}.log"
-    singularity:
+    container:
         config["singularitys"]["vep"]
     threads:    8
     shell:
@@ -24,7 +24,7 @@ rule bgzipVep:
         "variantCalls/annotation/raw/{sample}_{seqID}.raw.vcf.gz"
     log:
         "logs/variantCalling/vep/{sample}_{seqID}.bgzip.log"
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bgzip {input}) &> {log}"
@@ -38,7 +38,7 @@ rule filterVep:
         config["programdir"]["dir"]
     log:
         "logs/variantCalling/vep/filter/{sample}_{seqID}.log"
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
@@ -51,7 +51,7 @@ rule bgzipSNV:
         "variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz.tbi"
     log:
         "logs/variantCalling/{sample}_{seqID}.bgzip.log"
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bgzip {input} && tabix {input}.gz) &> {log}"

@@ -44,8 +44,8 @@ rule vcf2excel:
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log"
     wildcard_constraints:
-        sample = "(?!HD829).*"
-    singularity:
+        sample="(?!HD829).*",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {params.seqID} {input.cart} {params.coverage} \
@@ -73,8 +73,8 @@ rule vcf2excelHD829:
     wildcard_constraints:
         sample = "(HD829).*"
     log:
-        "logs/report/{sample}_{seqID}.vcf2excel.log"
-    singularity:
+        "logs/report/{sample}_{seqID}.vcf2excel.log",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/report/vcf2excelHD829.py {input.snv} {input.indel} {params.seqID} {input.cart} {params.coverage} {input.bed} {input.hotspot} {input.artefact} {input.germline} {input.hematoCount} {input.variantsLog} {output}) &> {log}"

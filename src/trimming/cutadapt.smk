@@ -17,12 +17,12 @@ rule cutadapt:
         # https://cutadapt.readthedocs.io/en/stable/guide.html#
         others = "--minimum-length 2 -q 20"
     log:
-        "logs/trim/cutadapt/{sample}_{seqID}.log"
-    threads:    8
-    singularity:
+        "logs/trim/cutadapt/{sample}_{seqID}.log",
+    threads: 8
+    container:
         config["singularitys"]["cutadapt"]
     shell:
         "(cutadapt {params.adapters_r1} {params.adapters_r2} {params.others} -o {output.fastq1} -p {output.fastq2} -j {threads} {input} > {output.qc} ) &> {log}"
-            
+
     # wrapper:
     #     "0.38.0/bio/cutadapt/pe"

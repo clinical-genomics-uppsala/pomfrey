@@ -7,7 +7,7 @@ rule bgzipCallers:
         tabix = temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi")
     log:
         "logs/variantCalling/bgzip/{method}/{sample}_{seqID}.log"
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bgzip {input.vcf} && tabix {output.vcf}) 2> {log}"

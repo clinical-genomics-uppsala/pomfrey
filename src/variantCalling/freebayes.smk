@@ -7,7 +7,7 @@ rule freebayes:
         temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.unsort.vcf")  # either .vcf or .bcf
     log:
         "logs/variantCalling/freebayes/{sample}_{seqID}.log"
-    singularity:
+    container:
         config["singularitys"]["freebayes"]  ##Not including bcftools and parallel
     params:
         extra = " --min-alternate-fraction 0.01 --allele-balance-priors-off --pooled-discrete --pooled-continuous --report-genotype-likelihood-max -t " +config["bed"]["bedfile"],         # optional parameters. Add regions file, bed-format.
@@ -23,7 +23,7 @@ rule sortFreebayes:
         "variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.unsort.vcf"
     output:
         temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.weirdAF.vcf")
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     log:
         "logs/variantCalling/freebayes/{sample}_{seqID}.sort.log"

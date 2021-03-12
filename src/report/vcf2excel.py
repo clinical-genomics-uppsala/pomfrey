@@ -738,6 +738,7 @@ for line in trusightSNV:
         worksheetTruSight.write_row(row,col,line, italicFormat)
         worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i],string = "IGV image")
     else:
+<<<<<<< Updated upstream
         worksheetTruSight.write_row(row,col,line)
         worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i],string = "IGV image")
     row +=1
@@ -773,6 +774,41 @@ worksheetOver.write_row(17,0,emptyList,lineFormat)
 
 ##Add avg. cov and clonalisy
 cartoolLog=cartool.replace("_MeanCoverageShortList.csv", "_Log.csv")
+=======
+        worksheetTruSight.write_row(row, col, line)
+        worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i], string="IGV image")
+    row += 1
+    i += 1
+
+
+''' Overview sheet (1) '''
+worksheetOver.write(0, 0, sample, headingFormat)
+worksheetOver.write(1, 0, "RunID: "+runID)
+worksheetOver.write(2, 0, "Processing date: "+today.strftime("%B %d, %Y"))
+worksheetOver.write_row(3, 0, emptyList, lineFormat)
+
+worksheetOver.write(4, 0, "Created by: ")
+worksheetOver.write(4, 4, "Valid from: ")
+worksheetOver.write(5, 0, "Signed by: ")
+worksheetOver.write(5, 4, "Document nr: ")
+worksheetOver.write_row(6, 0, emptyList, lineFormat)
+
+worksheetOver.write(7, 0, "Sheets:", tableHeadFormat)
+worksheetOver.write_url(8, 0, "internal:'TruSight'!A1", string='TruSight Variants')
+worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
+worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
+worksheetOver.write_url(11, 0, "internal:'Intron'!A1", string='Intron variants')
+worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
+worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(minCov)+'x')
+worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
+worksheetOver.write_url(15, 0, "internal: 'Coverage'!A1", string='Average coverage of all regions in bed')
+worksheetOver.write_url(16, 0, "internal:'Version'!A1", string='Version Log')
+worksheetOver.write_row(17, 0, emptyList, lineFormat)
+
+
+# Add avg. cov and clonalisy
+cartoolLog = cartool.replace("_MeanCoverageShortList.csv", "_Log.csv")
+>>>>>>> Stashed changes
 cmdAvgCov = 'grep Depth '+cartoolLog+' | cut -d"," -f2 | cut -f1 -d" "'
 avgCov = subprocess.run(cmdAvgCov, stdout=subprocess.PIPE,shell = 'TRUE').stdout.decode('utf-8').strip()
 

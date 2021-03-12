@@ -7,8 +7,8 @@ rule mergeSNVPindel:
     params:
         "-a -D -O v" #Allow overlap, Remove duplicates, output format vcf
     log:
-        "logs/report/{sample}_{seqID}.mergeVcf.log"
-    singularity:
+        "logs/report/{sample}_{seqID}.mergeVcf.log",
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat {params} -o {output} {input.snv} {input.pindel} ) &> {log}"
@@ -27,8 +27,8 @@ rule makePassVCF:
     log:
         "logs/report/{sample}_{seqID}.PASS.vcf.log"
     wildcard_constraints:
-        sample = "(?!HD829).*"
-    singularity:
+        sample="(?!HD829).*",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} {input.hemato} {output} ) &>{log}"
@@ -42,8 +42,8 @@ rule appendPindeltoPASS:
     log:
         "logs/report/{sample}_{seqID}.pindel.log"
     wildcard_constraints:
-        sample = "(?!HD829).*"
-    singularity:
+        sample="(?!HD829).*",
+    container:
         config["singularitys"]["python"]
     shell:
         "(zcat {input.pindel} | grep -v '^#' | grep PASS >> {input.PASS} || true && touch {output} ) &> {log}"
@@ -68,8 +68,8 @@ rule createBatFile:
     log:
         "logs/report/{sample}_{seqID}-makeBat.log"
     wildcard_constraints:
-        sample = "(?!HD829).*"
-    singularity:
+        sample="(?!HD829).*",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} {params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
@@ -78,14 +78,13 @@ rule igv:
     input:
         bat = "Results/{sample}_{seqID}/Reports/IGV/{sample}_{seqID}-igv.bat"
     output:
-        touch("Results/{sample}_{seqID}/Reports/IGV/done-igv.txt")##Several files, add a done.txt
+        touch("Results/{sample}_{seqID}/Reports/IGV/done-igv.txt"),
     log:
         "logs/report/{sample}_{seqID}.igv.log"
     wildcard_constraints:
-        sample = "(?!HD829).*"
-    threads:
-        2
-    singularity:
+        sample="(?!HD829).*",
+    threads: 2
+    container:
         config["singularitys"]["igv"]
     shell:
         "(xvfb-run --server-args='-screen 0 3200x2400x24' --auto-servernum --server-num=1 igv.sh -b {input.bat} ) &> {log}"

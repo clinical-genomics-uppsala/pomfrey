@@ -14,7 +14,7 @@ rule pisces:
     threads: 1
     log:
         "logs/variantCalling/pisces/{sample}_{seqID}.log"
-    singularity:
+    container:
         config["singularitys"]["pisces"]
     shell:  #Remove gVCF False for genome vcf and save for db, and artifacts? -gVCF FALSE
         "(dotnet /app/Pisces/Pisces.dll -b {input.bam} -g {input.reffolder} -i {params.bed} -t {threads} --filterduplicates TRUE --outfolder {params.outfolder} ) &> {log}"
@@ -46,7 +46,7 @@ rule sortPisces:
         name = "variantCalls/callers/pisces/{sample}_{seqID}-name.txt"
     output:
         temp("variantCalls/callers/pisces/{sample}_{seqID}.pisces.weirdAF.vcf")
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     log:
         "logs/variantCalling/pisces/{sample}_{seqID}.sort.log"
@@ -61,7 +61,7 @@ rule sortPisces:
 #         temp("variantCalls/callers/pisces/{sample}/{sample}.genome.vcf.tbi")
 #     log:
 #         "logs/variantCalling/pisces/{sample}.index.gVCF.log"
-#     singularity:
+#     container:
 #         config["singularitys"]["bcftools"]
 #     shell:
 #         "(tabix {input.vcf} )&>{log}"
@@ -74,7 +74,7 @@ rule gVCFdecompose:
         temp("variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.decomp.genome.vcf")
     log:
         "logs/variantCalling/pisces/{sample}_{seqID}.genome.decomp.log"
-    singularity:
+    container:
         config["singularitys"]["vt"]
     shell:
         "(vt decompose -s {input.vcf} | vt decompose_blocksub -o {output} -) &> {log}"
@@ -87,7 +87,7 @@ rule gVCFnormalize:
         "Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz"
     log:
         "logs/variantCalling/pisces/{sample}_{seqID}.normalized.gVCF.log"
-    singularity:
+    container:
         config["singularitys"]["vt"]
     shell:
         "(vt normalize -n -r {input.fasta} -o {output} {input.vcf} ) &> {log}"
@@ -97,7 +97,7 @@ rule gVCFfinalIndex:
         vcf = "Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz"
     output:
         "Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz.tbi"
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     log:
         "logs/variantCalling/pisces/{sample}_{seqID}.gz.log"

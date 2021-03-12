@@ -6,16 +6,14 @@ rule samtools_stats:
     output:
         "qc/{sample}_{seqID}/{sample}_{seqID}.samtools-stats.txt"
     params:
-        extra = "-t "+config["bed"]["bedfile"],                       # Optional: extra arguments.
-        # region="1:1000000-2000000"      # Optional: region string.
+        bedfile=config["bed"]["bedfile"],
     log:
-        "logs/qc/samtools_stats/{sample}_{seqID}.log"
-    singularity:
+        "logs/qc/samtools_stats/{sample}_{seqID}.log",
+    container:
         config["singularitys"]["bwa"]
     shell:
-        "(samtools stats {params.extra} {input} > {output} ) &> {log}"
-    # wrapper:
-    #     "0.38.0/bio/samtools/stats"
+        "(samtools stats -t {params.bedfile} {input} > {output} ) &> {log}"
+
 
 rule picardHsMetrics:
     input:
@@ -24,8 +22,8 @@ rule picardHsMetrics:
     output:
         "qc/{sample}_{seqID}/{sample}_{seqID}.HsMetrics.txt"
     log:
-        "logs/qc/picardHsMetrics/{sample}_{seqID}.log"
-    singularity:
+        "logs/qc/picardHsMetrics/{sample}_{seqID}.log",
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(java -Xmx4g -jar /opt/conda/share/picard-2.20.1-0/picard.jar CollectHsMetrics BAIT_INTERVALS={input.intervals} TARGET_INTERVALS={input.intervals} INPUT={input.bam} OUTPUT={output}) &> {log}"
@@ -55,8 +53,8 @@ rule getStatsforMqc:
     params:
         dir = config["programdir"]["dir"]
     log:
-        "logs/qc/{sample}_{seqID}_stats.log"
-    singularity:
+        "logs/qc/{sample}_{seqID}_stats.log",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/qc/get_stats.py {input.picardDup} {input.picardMet} {input.samtools} {input.multiQCheader} {input.cartool} {wildcards.sample} {output.sample} {input.batch} && touch {output.batchTmp}) &> {log}"
@@ -71,8 +69,8 @@ rule sortBatchStats:
     params:
         dir = config["programdir"]["dir"]
     log:
-        "logs/qc/sortBatchStats_{seqID}.log"
-    singularity:
+        "logs/qc/sortBatchStats_{seqID}.log",
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheetUsed} {output.batch}) &> {log}"

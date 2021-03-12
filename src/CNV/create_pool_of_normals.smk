@@ -12,8 +12,8 @@ rule bedToIntervalList:
     output:
         "bedFiles/TM_TE-annotated_closest-noduplicates.interval_list" #Should be based on bedfile...
     log:
-        "logs/Normals/TM_TE-annotated_closest-noduplicates.log"
-    singularity:
+        "logs/Normals/TM_TE-annotated_closest-noduplicates.log",
+    container:
         config["singularity"]["gatk4"]
     shell:
         "(gatk BedToIntervalList  -I {input.bed} -O {output} \
@@ -29,8 +29,8 @@ rule preprocessIntervals:
         binLength = 0, #WGS 1000
         mergingRule = "OVERLAPPING_ONLY"
     log:
-        "logs/Normals/GATK/preprocessIntervals.log"
-    singularity:
+        "logs/Normals/GATK/preprocessIntervals.log",
+    container:
         config["singularity"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' PreprocessIntervals -L {input.intervalList} -R {input.ref} \
@@ -47,8 +47,8 @@ rule collectReadCounts:
     params:
         mergingRule = "OVERLAPPING_ONLY"
     log:
-        "logs/Normals/GATK/{normal}.collectReadCounts.log"
-    singularity:
+        "logs/Normals/GATK/{normal}.collectReadCounts.log",
+    container:
         config["singularity"]["gatk4"]
     shell:
           "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} \
@@ -63,8 +63,8 @@ rule createReadCountPanelOfNormals:
         minIntervalMedianPerc = 5.0,
         input = lambda wildcards, input: " -I ".join(input)
     log:
-        "logs/Normals/GATK/readCountPoN.log"
-    singularity:
+        "logs/Normals/GATK/readCountPoN.log",
+    container:
         config["singularity"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' CreateReadCountPanelOfNormals -I {params.input} \

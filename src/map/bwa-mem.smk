@@ -13,8 +13,8 @@ rule bwa_mem:
         sort_order = "coordinate"  # Can be 'queryname' or 'coordinate'.
         # sort_extra = ""            # Extra args for samtools/picard.
     threads: 8
-    singularity:
-        config["singularitys"]["bwa"] #bwa 0.7.17, samtools 1.9, picard 2.20.11
+    container:
+        config["singularitys"]["bwa"]  #bwa 0.7.17, samtools 1.9, picard 2.20.11
     shell:
         "(bwa mem -t {threads} {params.extra} {params.index} {input.reads} | samtools sort -o {output} - ) &> {log}"
     # wrapper:
@@ -28,8 +28,8 @@ rule samtools_index:
     params:
         "" # optional params string
     log:
-        "logs/map/samtools_index/{sample}_{seqID}.log" # optional params string
-    singularity:
+        "logs/map/samtools_index/{sample}_{seqID}.log",  # optional params string
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(samtools index {input} {output}) &> {log}"
