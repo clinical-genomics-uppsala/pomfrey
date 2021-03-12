@@ -56,14 +56,15 @@ rule pindel2vcf:
         mc = 10, #min coverage
         minsize = 5, #min size of reported 5
         refname = "hg19",
-        refdate = 000000  #Can I add seqID instead? config["seqID"]["sequencerun"]
+        refdate = 000000,  #Can I add seqID instead? config["seqID"]["sequencerun"]
+        he = 0.01 #Hetrozygot call
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel2vcf.log"
     singularity:
         config["singularitys"]["pindel"]
     threads:    1
     shell:
-        "(pindel2vcf -P variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} -r {input.ref} -R {params.refname} -d {params.refdate} -v {output} -e {params.e} -mc {params.mc} -G -is {params.minsize} ) &> {log}"
+        "(pindel2vcf -P variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} -r {input.ref} -R {params.refname} -d {params.refdate} -v {output} -he {params.he} -e {params.e} -mc {params.mc} -G -is {params.minsize} ) &> {log}"
 
 rule fixContigPindel:
     input:
