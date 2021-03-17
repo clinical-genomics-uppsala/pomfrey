@@ -72,7 +72,7 @@ rule getStatsforMqc:
 
 rule sortBatchStats:
     input:
-        SampleSheetUsed="fastq/SampleSheetUsed.csv",
+        SampleSheetUsed="SampleSheet.csv",
         batchUnsorted="Results/batchQC_{seqID}/{seqID}_stats_unsorted.csv",
         batchDone=expand(
             "qc/{sample}_{seqID}/{sample}_batchStats.done", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
@@ -86,4 +86,4 @@ rule sortBatchStats:
     singularity:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheetUsed} {output.batch}) &> {log}"
+        "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheet} {output.batch}) &> {log}"

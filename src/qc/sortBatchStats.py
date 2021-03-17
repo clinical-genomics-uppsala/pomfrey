@@ -4,7 +4,7 @@ import sys
 import csv
 
 batchFile = sys.argv[1]
-SampleSheetUsed = sys.argv[2]
+SampleSheet = sys.argv[2]
 outFile = sys.argv[3]  # should end with _mqc.json for MultiQC
 
 # Get all lines from get_stats.py output
@@ -15,7 +15,7 @@ unOrdSamples = [x[0] for x in linesUnordered]
 # Get the order from SampleSheetUsed
 samples = []
 startReading = 0
-with open(SampleSheetUsed, 'r') as file:
+with open(SampleSheet, 'r') as file:
     lines = [line.strip() for line in file]
     for line in lines:
         if startReading == 1:  # Once reached [Data]
@@ -23,7 +23,7 @@ with open(SampleSheetUsed, 'r') as file:
         if line.startswith("[Data]"):
             startReading = 1
 # samples.pop() #Remove any empty are there empty line at end?!
-samples = samples[1:]  # Remove header from SampleSheetUsed
+samples = samples[1:]  # Remove header from SampleSheet
 sampleSheetSamples = [string for string in samples if string != ""]  # Remove empty fields
 # Remove any HD829 because other pipeline
 # HDindices = [i for i, x in enumerate(sampleSheetSamples) if x.startswith("HD829")]
