@@ -72,7 +72,7 @@ rule getStatsforMqc:
 
 rule sortBatchStats:
     input:
-        SampleSheetUsed="SampleSheet.csv",
+        SampleSheet="SampleSheet.csv",
         batchUnsorted="Results/batchQC_{seqID}/{seqID}_stats_unsorted.csv",
         batchDone=expand(
             "qc/{sample}_{seqID}/{sample}_batchStats.done", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
