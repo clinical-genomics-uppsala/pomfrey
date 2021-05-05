@@ -1,8 +1,8 @@
-# configfile: "/projects/wp4/nobackup/workspace/arielle_test/somaticpipeline/src/samples.yaml"
 ##Specify configfile and singularity folder in snakemake command.
 
 rule all:
     input:
+<<<<<<< HEAD
         expand(
             "Results/{sample}_{seqID}/Data/{sample}_{seqID}.indel.bam",
             sample=config["samples"],

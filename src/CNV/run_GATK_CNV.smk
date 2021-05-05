@@ -133,7 +133,7 @@ rule plotModeledSegments:
 #         # cnv_done = "Tumor/{sample}_cnv_done.txt"
 #     params:
 #         outdir = "CNV/"#"Results/{sample}_{seqID}/Reports",
-#     singularity:
+#     container:
 #         config["singularitys"]["python"]
 #     log:
 #         "logs/Tumor/{sample}_{seqID}_relevant_cnvs-gatk4.log"
