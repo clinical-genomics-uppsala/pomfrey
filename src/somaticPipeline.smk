@@ -2,7 +2,6 @@
 
 rule all:
     input:
-<<<<<<< HEAD
         expand(
             "Results/{sample}_{seqID}/Data/{sample}_{seqID}.indel.bam",
             sample=config["samples"],
