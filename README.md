@@ -4,7 +4,7 @@
 To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it is used together with slurm-drmaa to submit on the local HPC. If Horizon Myeloid DNA Reference Standard is used it should be named HD829 to be processed separately and not hold up the pipeline.
 
 ### Files & Caches
-- **SampleSheetUsed.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
+- **SampleSheet.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
     ```sh
     [Data]
     Sample_ID,Sample_Name,Description,index,I7_Index_ID,index2,I5_Index_ID,Sample_Project
@@ -44,11 +44,11 @@ To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it
 | CARTool |In-house program avaialble at [Github](https://github.com/anod6351/CARtool) | CARTools-200206.simg |
 | Igv v.2.4.10 & xvfb | Not working to load hg19 genome into container | igv.def |
 | Pisces v.5.2.11.163 |Microsoft dotnet v.2.1| Pisces_singularity.def	|
-| Python3 | Libraries: csv, pysam, xlsxwriter|	python-pysam.def |
+| Python3 | Libraries: csv, pysam, xlsxwriter,date, itemgetter, yaml|	python-pysam.def |
 
 ### Config Files
 #### Samples Config
-Yaml config file with samples to process and local variables and files for the pipeline.
+Yaml config file with samples to process and local variables and files for the pipeline. Configfile name has to be ${sequencerun}_config.yaml
 ```
 programdir:
   dir: "${PATH_TO_POMFREY}"
@@ -119,5 +119,5 @@ samples:
 Json file with config for submission on HPC. Need to be specified to suit you HPC. See cluster-config.json for example.
 ### Snakemake command
 `
-snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -s -p core -t {cluster.time} -n {cluster.n} --nodes=1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --configfile ${sample_config}
+snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -p core -t {cluster.time} -n {cluster.n} --nodes=1-1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --configfile ${sample_config}
 `
