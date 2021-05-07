@@ -572,12 +572,16 @@ trusightSNV = []  # trusight genes only
 trusightSNVigv = []  # trusight genes only
 
 for record in vcf_snv.fetch():
+    # Check if the synonomus variant exists in the COSMIC hemato file or is a splice variant
     synoCosmicN = 0
+    spliceVariant = False
 
     if record.filter.keys() == ["Syno"]:  # Only if Syno not and popAF.   any(x in "Syno" for x in record.filter.keys()):
         csq = record.info["CSQ"][0]
+        consequence = csq.split("|")[1]
         synoCosmicVepList = [cosmic for cosmic in csq.split("|")[17].split(
             "&") if cosmic.startswith('CO')]  # Get all cosmicID in list
+        # COSMIC Hemato
         if len(synoCosmicVepList) != 0:
             for synoCosmicId in synoCosmicVepList:
                 cmdCosmic = 'grep -w '+synoCosmicId+' '+hematoCountFile+' | cut -f 16 '
@@ -585,8 +589,11 @@ for record in vcf_snv.fetch():
                 if len(synoCosmicNew) == 0:
                     synoCosmicNew = 0
                 synoCosmicN += int(synoCosmicNew)
+        #Splice variant
+        if 'splice' in consequence:
+            spliceVariant = True
 
-    if record.filter.keys() == ["PASS"] or synoCosmicN != 0:
+    if record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant:
 
         if len(record.info["AF"]) == 1:
             af = record.info["AF"][0]
@@ -642,7 +649,7 @@ for record in vcf_snv.fetch():
                 codingName = csq.split("|")[10].split(":")[1]
             else:
                 codingName = ''
-            consequence = csq.split("|")[1]
+            # consequence = csq.split("|")[1]
             ensp = csq.split("|")[11]
 
             # Population allel freq
