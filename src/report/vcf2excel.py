@@ -39,7 +39,7 @@ sample_purity = 0.8
 ''' Create execl file and sheets. '''
 workbook = xlsxwriter.Workbook(output)
 worksheetOver = workbook.add_worksheet('Overview')
-worksheetTruSight = workbook.add_worksheet('TruSight')
+worksheetShortList = workbook.add_worksheet('ShortList')
 worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')  # .... sys.argv[2]
 worksheetIntron = workbook.add_worksheet('Intron')
@@ -67,13 +67,13 @@ sample = list(vcf_snv.header.samples)[0]
 today = date.today()
 emptyList = ['', '', '', '', '', '']
 
-trusightGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
+shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
                  'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
                  'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
                  'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRP72', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
 
-intronDict = {'GATA2': ['chr3', 128201827,  128202419], 
+intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
               'NOTCH1': ['chr9', 139388885, 139390523],
               'ANKRD26': ['chr10', 27389007, 27389433],
@@ -572,9 +572,9 @@ orange = []
 whiteIGV = []
 underFive = []  # put after green and orange but still white
 underFiveIGV = []  # put after green and orange but still white
-trusightSNV = []  # trusight genes only
-trusightSNVigv = []  # trusight genes only
-greenTruSight = [] #Germline in trusight
+shortListSNV = []  # Reported genes only
+shortListSNVigv = []  # Reported genes only
+greenShortList = [] #Germline in reported genes
 
 for record in vcf_snv.fetch():
     # Check if the synonomus variant exists in the COSMIC hemato file or is a splice variant
@@ -711,8 +711,8 @@ for record in vcf_snv.fetch():
                     if germLine and record.ref == germLine.split()[2] and alt == germLine.split()[3]:
                         green.append(snv)
                         germline_variant = 1
-                        if gene in trusightGenes:
-                            greenTruSight.append(snv)
+                        if gene in shortListGenes:
+                            greenShortList.append(snv)
                         break
                 if germline_variant == 0:
                     if float(af) < 0.05:
@@ -721,9 +721,9 @@ for record in vcf_snv.fetch():
                     else:
                         white.append(snv)
                         whiteIGV.append(igv)
-                    if gene in trusightGenes:
-                        trusightSNV.append(snv)
-                        trusightSNVigv.append(igv)
+                    if gene in shortListGenes:
+                        shortListSNV.append(snv)
+                        shortListSNVigv.append(igv)
 # Write to xlsx file
 i = 0
 for line in white:
@@ -762,42 +762,43 @@ for line in underFive:
     i += 1
 
 
-''' TruSight varianter '''
-worksheetTruSight.set_column('E:E', 10)
+''' Reported variants '''
+worksheetShortList.set_column('E:E', 10)
 # Variants or snv rows from SNV sheet.
-worksheetTruSight.write('A1', 'TruSight variants found', headingFormat)
-worksheetTruSight.write('A3', 'Sample: '+str(sample))
-worksheetTruSight.write('A6', 'VEP: '+vepline)  # , textwrapFormat)
-worksheetTruSight.write('A8', 'The following filters were applied: ')
-worksheetTruSight.write('B9', 'Coverage >= 100x')
-worksheetTruSight.write('B10', 'Population freq (KGP, gnomAD, NHLBI_ESP ) <= 2%')
-worksheetTruSight.write('B11', 'Biotype is protein coding')
-worksheetTruSight.write('B12', 'Consequence not deemed relevant')
+worksheetShortList.write('A1', 'Variants in genes to report', headingFormat)
+worksheetShortList.write('A3', 'Sample: '+str(sample))
+worksheetShortList.write('A6', 'VEP: '+vepline)  # , textwrapFormat)
+worksheetShortList.write('A8', 'The following filters were applied: ')
+worksheetShortList.write('B9', 'Coverage >= 100x')
+worksheetShortList.write('B10', 'Population freq (KGP, gnomAD, NHLBI_ESP ) <= 2%')
+worksheetShortList.write('B11', 'Biotype is protein coding')
+worksheetShortList.write('B12', 'Consequence not deemed relevant')
 
 
-worksheetTruSight.write('A14', 'Only variants in genes from TruSight panel:')
-worksheetTruSight.write_row(14, 0, trusightGenes)
-worksheetTruSight.write('A16', 'For all variants see: ')
-worksheetTruSight.write_url('B16', "internal:'SNVs'!A1", string='SNVs')
+worksheetShortList.write('A14', 'Short list of variants in genes to report:')
+worksheetShortList.write_row(14, 0, shortListGenes)
+worksheetShortList.write('A16', 'For all variants see: ')
+worksheetShortList.write_url('B16', "internal:'SNVs'!A1", string='SNVs')
 
-worksheetTruSight.write('A18', 'Coverage below '+str(medCov)+'x', italicFormat)
-worksheetTruSight.write_row('A20', tableheading, tableHeadFormat)  # 1 index
-row = 20  # 0 index
+worksheetShortList.write('A18', 'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetShortList.write('A19', 'Variant likely germline', greenFormat)
+worksheetShortList.write_row('A21', tableheading, tableHeadFormat)  # 1 index
+row = 21  # 0 index
 i = 0
-for line in trusightSNV:
+for line in shortListSNV:
     if line[8] < medCov:
-        worksheetTruSight.write_row(row, col, line, italicFormat)
-        worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i], string="IGV image")
+        worksheetShortList.write_row(row, col, line, italicFormat)
+        worksheetShortList.write_url('T'+str(row+1), shortListSNVigv[i], string="IGV image")
     else:
-        worksheetTruSight.write_row(row, col, line)
-        worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i], string="IGV image")
+        worksheetShortList.write_row(row, col, line)
+        worksheetShortList.write_url('T'+str(row+1), shortListSNVigv[i], string="IGV image")
     row += 1
     i += 1
-for line in greenTruSight:
+for line in greenShortList:
         if line[8] < medCov:
-            worksheetTruSight.write_row(row, col, line, green_italicFormat)
+            worksheetShortList.write_row(row, col, line, green_italicFormat)
         else:
-            worksheetTruSight.write_row(row, col, line, greenFormat)
+            worksheetShortList.write_row(row, col, line, greenFormat)
         row += 1
 
 
@@ -814,7 +815,7 @@ worksheetOver.write(5, 4, "Document nr: ")
 worksheetOver.write_row(6, 0, emptyList, lineFormat)
 
 worksheetOver.write(7, 0, "Sheets:", tableHeadFormat)
-worksheetOver.write_url(8, 0, "internal:'TruSight'!A1", string='TruSight Variants')
+worksheetOver.write_url(8, 0, "internal:'ShortList'!A1", string='Variants in genes to report')
 worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron'!A1", string='Intron variants')
