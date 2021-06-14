@@ -574,14 +574,19 @@ underFive = []  # put after green and orange but still white
 underFiveIGV = []  # put after green and orange but still white
 trusightSNV = []  # trusight genes only
 trusightSNVigv = []  # trusight genes only
+greenTruSight = [] #Germline in trusight
 
 for record in vcf_snv.fetch():
+    # Check if the synonomus variant exists in the COSMIC hemato file or is a splice variant
     synoCosmicN = 0
+    spliceVariant = False
+    csq = record.info["CSQ"][0]
+    consequence = csq.split("|")[1]
 
     if record.filter.keys() == ["Syno"]:  # Only if Syno not and popAF.   any(x in "Syno" for x in record.filter.keys()):
-        csq = record.info["CSQ"][0]
         synoCosmicVepList = [cosmic for cosmic in csq.split("|")[17].split(
             "&") if cosmic.startswith('CO')]  # Get all cosmicID in list
+        # COSMIC Hemato
         if len(synoCosmicVepList) != 0:
             for synoCosmicId in synoCosmicVepList:
                 cmdCosmic = 'grep -w '+synoCosmicId+' '+hematoCountFile+' | cut -f 16 '
@@ -589,8 +594,11 @@ for record in vcf_snv.fetch():
                 if len(synoCosmicNew) == 0:
                     synoCosmicNew = 0
                 synoCosmicN += int(synoCosmicNew)
+        #Splice variant
+        if 'splice' in consequence:
+            spliceVariant = True
 
-    if record.filter.keys() == ["PASS"] or synoCosmicN != 0:
+    if record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant:
 
         if len(record.info["AF"]) == 1:
             af = record.info["AF"][0]
@@ -610,7 +618,7 @@ for record in vcf_snv.fetch():
                     callers = ' & '.join(record.info["CALLERS"])
             except KeyError:
                 callers = 'Pisces-multi'
-            csq = record.info["CSQ"][0]
+#            csq = record.info["CSQ"][0]
             gene = csq.split("|")[3]
             clinical = csq.split("|")[58]  # [59]
             existing = csq.split("|")[17].split("&")
@@ -646,7 +654,7 @@ for record in vcf_snv.fetch():
                 codingName = csq.split("|")[10].split(":")[1]
             else:
                 codingName = ''
-            consequence = csq.split("|")[1]
+            # consequence = csq.split("|")[1]
             ensp = csq.split("|")[11]
 
             # Population allel freq
@@ -703,6 +711,8 @@ for record in vcf_snv.fetch():
                     if germLine and record.ref == germLine.split()[2] and alt == germLine.split()[3]:
                         green.append(snv)
                         germline_variant = 1
+                        if gene in trusightGenes:
+                            greenTruSight.append(snv)
                         break
                 if germline_variant == 0:
                     if float(af) < 0.05:
@@ -783,6 +793,12 @@ for line in trusightSNV:
         worksheetTruSight.write_url('T'+str(row+1), trusightSNVigv[i], string="IGV image")
     row += 1
     i += 1
+for line in greenTruSight:
+        if line[8] < medCov:
+            worksheetTruSight.write_row(row, col, line, green_italicFormat)
+        else:
+            worksheetTruSight.write_row(row, col, line, greenFormat)
+        row += 1
 
 
 ''' Overview sheet (1) '''
