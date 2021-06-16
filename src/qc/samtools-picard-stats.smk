@@ -52,7 +52,6 @@ rule getStatsforMqc:
         picardDup="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
         picardMet="qc/{sample}_{seqID}/{sample}_{seqID}.HsMetrics.txt",
         samtools="qc/{sample}_{seqID}/{sample}_{seqID}.samtools-stats.txt",
-        # multiQCheader=config["programdir"]["dir"] + "src/qc/multiqc-header.txt",
         cartool="qc/{sample}_{seqID}/{sample}_{seqID}_Log.csv",
         batch="Results/batchQC_{seqID}/{seqID}_stats_unsorted.csv",
     output:

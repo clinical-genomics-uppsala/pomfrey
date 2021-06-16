@@ -19,7 +19,7 @@ for record in vcf_in.fetch():
         if len(record.ref) != len(record.alts[0]):  # if InDel
             # Support by either Vardict or Manta, ok.
             if ("Mutect2".lower() in [i.lower() for i in record.info["CALLERS"]] or
-                "Vardict".lower() in [i.lower() for i in record.info["CALLERS"]]):
+               "Vardict".lower() in [i.lower() for i in record.info["CALLERS"]]):
                 # Check if indel artefact
                 write = 1
                 cmdIndelArte = 'grep -w '+str(record.pos)+' '+indelArteFile

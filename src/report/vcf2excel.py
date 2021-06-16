@@ -68,10 +68,10 @@ today = date.today()
 emptyList = ['', '', '', '', '', '']
 
 shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
-                 'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
-                 'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
-                 'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
-                 'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRP72', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+                  'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
+                  'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
+                  'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
+                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRP72', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
 
 intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
@@ -321,8 +321,8 @@ worksheetCNV.write('A1', 'CNVs found', headingFormat)
 worksheetCNV.write_row(1, 0, emptyList, lineFormat)
 worksheetCNV.write('A3', 'Sample: '+str(sample))
 worksheetCNV.write('A5',
-    'Log2 ratio between -0.25<=x<=0.2 are marked red since they are very weak signals, and should be interpret with care. ',
-    redFormat)
+                   'Log2 ratio between -0.25<=x<=0.2 are marked red since they are very weak signals, '
+                   + 'and should be interpret with care. ', redFormat)
 # Insert png picture to sheets
 worksheetCNV.insert_image('A7', cnv_image_path)
 
@@ -574,7 +574,7 @@ underFive = []  # put after green and orange but still white
 underFiveIGV = []  # put after green and orange but still white
 shortListSNV = []  # Reported genes only
 shortListSNVigv = []  # Reported genes only
-greenShortList = [] #Germline in reported genes
+greenShortList = []  # Germline in reported genes
 
 for record in vcf_snv.fetch():
     # Check if the synonomus variant exists in the COSMIC hemato file or is a splice variant
@@ -594,7 +594,7 @@ for record in vcf_snv.fetch():
                 if len(synoCosmicNew) == 0:
                     synoCosmicNew = 0
                 synoCosmicN += int(synoCosmicNew)
-        #Splice variant
+        # Splice variant
         if 'splice' in consequence:
             spliceVariant = True
 
@@ -795,11 +795,11 @@ for line in shortListSNV:
     row += 1
     i += 1
 for line in greenShortList:
-        if line[8] < medCov:
-            worksheetShortList.write_row(row, col, line, green_italicFormat)
-        else:
-            worksheetShortList.write_row(row, col, line, greenFormat)
-        row += 1
+    if line[8] < medCov:
+        worksheetShortList.write_row(row, col, line, green_italicFormat)
+    else:
+        worksheetShortList.write_row(row, col, line, greenFormat)
+    row += 1
 
 
 ''' Overview sheet (1) '''
