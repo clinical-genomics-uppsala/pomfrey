@@ -80,9 +80,10 @@ rule sortBatchStats:
         batch="Results/batchQC_{seqID}/{seqID}_stats_mqc.json",
     params:
         dir=config["programdir"]["dir"],
+	cov=config["cartool"]["cov"],
     log:
         "logs/qc/sortBatchStats_{seqID}.log",
     singularity:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheet} {output.batch}) &> {log}"
+        "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheet} {output.batch} {params.cov}) &> {log}"

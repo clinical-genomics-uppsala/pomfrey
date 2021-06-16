@@ -6,6 +6,10 @@ import csv
 batchFile = sys.argv[1]
 SampleSheet = sys.argv[2]
 outFile = sys.argv[3]  # should end with _mqc.json for MultiQC
+minCov = sys.argv[4]
+medCov = sys.argv[5]
+maxCov = sys.argv[6]
+
 
 # Get all lines from get_stats.py output
 with open(batchFile, 'r') as bFile:
@@ -31,7 +35,7 @@ sampleSheetSamples = [string for string in samples if string != ""]  # Remove em
 #     for index in HDindices:
 #         sampleSheetSamples.pop(index)
 
-header = ['Sample', 'Tot seq', 'Reads mapped', 'Avg Coverage', 'Breadth 500x', 'Reads paired [%]', 'Insert size',
+header = ['Sample', 'Tot seq', 'Reads mapped', 'Avg Coverage', 'Breadth '+str(medCov)+'x', 'Reads paired [%]', 'Insert size',
           'Insert size s.d.', 'Average quality', 'Duplicates [%]', 'Breadth 50x', 'Breadth 100x', 'Bases on target']
 
 with open(outFile, 'w') as file:
@@ -70,9 +74,9 @@ with open(outFile, 'w') as file:
     file.write("      \"scale\": \"RdYlGn-rev\",\n")
     file.write("      \"suffix\": \"%\"\n")
     file.write("    },\n")
-    file.write("    \"Breadth 500x\": {\n")
-    file.write("      \"title\": \"Coverage breadth 500x\",\n")
-    file.write("      \"description\": \"Design covered to 500x from CARTool\",\n")
+    file.write("    \"Breadth "+str(medCov)+"x\": {\n")
+    file.write("      \"title\": \"Coverage breadth "+str(medCov)+"x\",\n")
+    file.write("      \"description\": \"Design covered to "+str(medCov)+"x from CARTool\",\n")
     file.write("      \"min\": 0,\n")
     file.write("      \"max\": 1,\n")
     file.write("      \"scale\": \"RdYlGn\",\n")
