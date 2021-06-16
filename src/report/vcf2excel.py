@@ -799,7 +799,7 @@ worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron'!A1", string='Intron variants')
 worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
-worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than 100x')
+worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(minCov)+'x')
 worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
 worksheetOver.write_url(15, 0, "internal: 'Coverage'!A1", string='Average coverage of all regions in bed')
 worksheetOver.write_url(16, 0, "internal:'Version'!A1", string='Version Log')
@@ -808,6 +808,7 @@ worksheetOver.write_row(17, 0, emptyList, lineFormat)
 
 # Add avg. cov and clonalisy
 cartoolLog = cartool.replace("_MeanCoverageShortList.csv", "_Log.csv")
+
 cmdAvgCov = 'grep Depth '+cartoolLog+' | cut -d"," -f2 | cut -f1 -d" "'
 avgCov = subprocess.run(cmdAvgCov, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
 

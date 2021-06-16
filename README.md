@@ -4,7 +4,7 @@
 To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it is used together with slurm-drmaa to submit on the local HPC. If Horizon Myeloid DNA Reference Standard is used it should be named HD829 to be processed separately and not hold up the pipeline.
 
 ### Files & Caches
-- **SampleSheetUsed.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
+- **SampleSheet.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
     ```sh
     [Data]
     Sample_ID,Sample_Name,Description,index,I7_Index_ID,index2,I5_Index_ID,Sample_Project
