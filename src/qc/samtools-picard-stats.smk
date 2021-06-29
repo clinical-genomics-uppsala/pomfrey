@@ -80,7 +80,7 @@ rule sortBatchStats:
         batch="Results/batchQC_{seqID}/{seqID}_stats_mqc.json",
     params:
         dir=config["programdir"]["dir"],
-	cov=config["cartool"]["cov"],
+	    cov=config["cartool"]["cov"],
     log:
         "logs/qc/sortBatchStats_{seqID}.log",
     singularity:

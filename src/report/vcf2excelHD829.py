@@ -32,7 +32,6 @@ known = [['ABL1', 'T315I', '133748283', 'SNP', 'COSM12560', '0.050'],
          ['TP53', 'S241F', '7577559', 'SNP', 'COSM10812', '0.050']]
 
 knownPos = [x[2] for x in known]
-numKnown = 0
 knownFoundTemp = []
 knownFound = []
 
@@ -53,6 +52,7 @@ maxCov = int(config_list['cartool']['cov'].split(' ')[2])  # int(sys.argv[7])
 bedfile = config_list["bed"]["pindel"]  # sys.argv[8]
 hotspotFile = config_list["bed"]["hotspot"]  # sys.argv[9]
 artefactFile = config_list["bed"]["artefact"]  # sys.argv[10]
+pindelArtefactFile = config_list["bed"]["pindelArtefact"]
 germlineFile = config_list["bed"]["germline"]  # sys.argv[11]
 hematoCountFile = config_list["configCache"]["hemato"]  # sys.argv[12]
 variantLog = config_list["configCache"]["variantlist"]  # sys.argv[13]
@@ -260,13 +260,18 @@ row += 1
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Start', 'End', 'SV length', 'Af',
                 'Ref', 'Alt', 'Dp', 'Transcript', 'Mutation cds', 'ENSP', 'Max popAF', 'Max Pop']
 worksheetIndel.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
-# row = 7 #0 index
+
+itdLines = []
+orangeIndel = []
+whiteIndel = []
+whiteIGVIndel = []
+underFiveIndel = []
+underFiveIGVIndel = []
 col = 0
 
 for indel in vcf_indel.fetch():
     if indel.filter.keys() == ["PASS"]:
         svlen = indel.info["SVLEN"]
-
         ads = indel.samples[sample]["AD"]
         af = int(ads[1])/(int(ads[0]) + int(ads[1]))
         # ad = ', '.join([str(i) for i in ads])
@@ -278,22 +283,69 @@ for indel in vcf_indel.fetch():
             sys.exit()
 
         csqIndel = indel.info["CSQ"][0]  # VEP annotation
-
         indelGene = csqIndel.split("|")[3]
-
         maxPopAfIndel = csqIndel.split("|")[56]  # [57]
+
         if len(maxPopAfIndel) > 1:
             maxPopAfIndel = round(float(maxPopAfIndel), 4)
         maxPopIndel = csqIndel.split("|")[57]  # [61]
 
         indelTranscript = csqIndel.split("|")[10].split(":")[0]
-        indelCodingName = csqIndel.split("|")[10].split(":")[1]
+        if len(csqIndel.split("|")[10].split(":")) > 1:
+            indelCodingName = csqIndel.split("|")[10].split(":")[1]
+        else:
+            indelCodingName = ''
         indelEnsp = csqIndel.split("|")[11]
 
         indelRow = [runID, sample, indelGene, indel.contig, indel.pos, indel.stop, svlen, af, indel.ref,
                     alt, indel.info["DP"], indelTranscript, indelCodingName, indelEnsp, maxPopAfIndel, maxPopIndel]
-        worksheetIndel.write_row(row, col, indelRow)
-        row += 1
+        if indel.pos > 28608040 and indel.pos < 28608054 :
+            itdLines.append([af, indel.info["DP"], indel.ref, alt, svlen])
+        # Sort based on artefact file
+        cmdArt = 'grep -w '+str(indel.pos)+' '+pindelArtefactFile + '| grep -w '+str(indel.contig)
+        artLines = subprocess.run(cmdArt, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
+
+        if len(artLines) > 0:  # if pos exists and match in artefact file.
+            orangeIndel.append(indelRow)
+        else:
+            indelIgv = "external:IGV/"+indelGene+"-"+indel.contig+"_" + \
+                str(int(indel.pos)-1)+"_"+str(int(indel.pos)-1+len(alt))+".svg"
+            if float(af) < 0.05:
+                underFiveIndel.append(indelRow)
+                underFiveIGVIndel.append(indelIgv)
+            else:
+                whiteIndel.append(indelRow)
+                whiteIGVIndel.append(indelIgv)
+
+# Write to xlsx file
+i = 0
+for line in whiteIndel:
+    if line[10] < medCov:
+        worksheetIndel.write_row(row, col, line, italicFormat)
+        worksheetIndel.write_url('Q'+str(row+1), whiteIGVIndel[i], string="IGV image")
+    else:
+        worksheetIndel.write_row(row, col, line)
+        worksheetIndel.write_url('Q'+str(row+1), whiteIGVIndel[i], string="IGV image")
+    row += 1
+    i += 1
+
+for line in orangeIndel:
+    if line[10] < medCov:
+        worksheetIndel.write_row(row, col, line, orange_italicFormat)
+    else:
+        worksheetIndel.write_row(row, col, line, orangeFormat)
+    row += 1
+
+i = 0
+for line in underFiveIndel:
+    if line[10] < medCov:
+        worksheetIndel.write_row(row, col, line, italicFormat)
+        worksheetIndel.write_url('Q'+str(row+1), underFiveIGVIndel[i], string="IGV image")
+    else:
+        worksheetIndel.write_row(row, col, line)
+        worksheetIndel.write_url('Q'+str(row+1), underFiveIGVIndel[i], string="IGV image")
+    row += 1
+    i += 1
 
 
 ''' SNV sheet (2) '''
@@ -364,7 +416,6 @@ for record in vcf_snv.fetch():
 
         for knownLine in known:
             if csq.split("|")[3] == knownLine[0] and str(record.pos) == knownLine[2]:
-                numKnown += 1
                 knownFoundTemp.append(knownLine+[af, record.info["DP"], record.ref, alt])
 
         if af >= 0.03:
@@ -523,19 +574,38 @@ worksheetKnown.write('B12', 'Consequence not deemed relevant')
 worksheetKnown.write('A14', 'For all variants see: ')
 worksheetKnown.write_url('B14', "internal:'SNVs'!A1", string='SNVs')
 
-worksheetKnown.write('A16', 'Coverage below 500x', italicFormat)
+worksheetKnown.write('A16', 'Several variants found at same position.', italicFormat)
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Variant', 'Pos', 'Type of Variant',
-                'COSMIC ID', 'Known AF', 'Found AF', 'DP', 'Ref', 'Alt']
+                'COSMIC ID', 'Known AF', 'Found AF', 'DP', 'Ref', 'Alt', 'SV length']
 worksheetKnown.write_row('A18', tableheading, tableHeadFormat)  # 1 index
 row = 18  # 0 index
 
+numKnown = 0
+lastLine = ['', '', '', '', '', '']
 for knownLine in knownFound:
     line = [runID, sample]+knownLine
-    if len(knownLine) < 7:
+    if knownLine[1] == 'ITD300':
+        numITD = 1
+        if len(itdLines) < 1:
+            worksheetKnown.write_row(row, 0, line, redFormat)
+        else:
+            for itd in itdLines:
+                if numITD == 1:
+                    worksheetKnown.write_row(row, 0, line+itd)
+                    numITD += 1
+                    numKnown += 1
+                else:
+                    row += 1
+                    worksheetKnown.write_row(row, 0, ['', '', '', '', '', '', '', '']+itd, italicFormat)
+    elif len(knownLine) < 7:
         worksheetKnown.write_row(row, 0, line, redFormat)
+    elif lastLine[4] == line[4]:
+        worksheetKnown.write_row(row, 0, ['', '', '', '', '', '', '', '']+line[8:], italicFormat)
     else:
         worksheetKnown.write_row(row, 0, line)
+        numKnown += 1
     row += 1
+    lastLine = line
 
 
 ''' Overview sheet (1) '''
@@ -574,7 +644,7 @@ breadthCmd = 'grep "Mean Coverage Breadth:" '+cartoolLog + ' | cut -f2- -d"," '
 breadth = subprocess.run(breadthCmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
 
 worksheetOver.write_row(17, 0, ['Percent known variants found:'])
-if numKnown < 20:  # Big ins included, how to check??!!
+if numKnown < len(known):  # Big ins included, how to check??!!
     worksheetOver.write_row(18, 0, [str(numKnown/len(known)*100)+' %'], redFormat)
 else:
     worksheetOver.write_row(18, 0, [str(numKnown/len(known)*100)+' %'])
