@@ -23,7 +23,8 @@ runID = config_list['seqID']['sequencerun']  # sys.argv[5]
 minCov = int(config_list['cartool']['cov'].split(' ')[0])  # int(sys.argv[7])
 medCov = int(config_list['cartool']['cov'].split(' ')[1])  # int(sys.argv[8])
 maxCov = int(config_list['cartool']['cov'].split(' ')[2])  # int(sys.argv[9])
-bedfile = config_list["bed"]["pindel"]  # sys.argv[10]
+bedfile = config_list["bed"]["bedfile"]
+pindelBedfile = config_list["bed"]["pindel"]  # sys.argv[10]
 # sys.argv[11] #bedfile with - annotated as CNV and exon nummers but exon number not really used right now
 cnv_bed_file_path = config_list["CNV"]["bedPoN"]
 chrBandFilePath = config_list["CNV"]["cyto"]  # sys.argv[12]
@@ -365,7 +366,7 @@ for gene in intronDict:
 
 row += 1
 worksheetIntron.write('A'+str(row), 'Coverage below '+str(medCov)+'x', italicFormat)
-row += 1
+row += 2
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP',
                 'Transcript', 'Mutation cds', 'ENSP', 'Consequence', 'Max popAF', 'Max Pop', 'Callers']
 worksheetIntron.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
@@ -422,7 +423,7 @@ worksheetIndel.set_column('E:F', 10)  # pos
 # worksheetIndel.set_column(1,3,10)
 worksheetIndel.write('A1', 'Pindel results', headingFormat)
 worksheetIndel.write_row(1, 0, emptyList, lineFormat)
-with open(bedfile) as bed:
+with open(pindelBedfile) as bed:
     genesDup = [line.split("\t")[3].strip() for line in bed]
     genes = set(genesDup)
 
@@ -440,7 +441,7 @@ for gene in genes:
     row += 1
 worksheetIndel.write(row, 0, 'Coverage below '+str(medCov)+'x', italicFormat)
 worksheetIndel.write(row+1, 0, 'Variant in artefact list ', orangeFormat)
-worksheetIndel.write(row+2, 0, 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
+worksheetIndel.write(row+2, 0, 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact and germline variants.')
 row += 5
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Start', 'End', 'SV length', 'Af', 'Ref',
                 'Alt', 'Dp', 'Transcript', 'Mutation cds', 'ENSP', 'Max popAF', 'Max Pop', 'IGV']
@@ -841,24 +842,26 @@ breadthCmd = 'grep "Mean Coverage Breadth:" '+cartoolLog + ' | cut -f2- -d"," '
 breadth = subprocess.run(breadthCmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
 
 
-worksheetOver.write_row(20, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
+worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
                                 str(minCov)+'x', str(medCov)+'x', str(maxCov)+'x'], tableHeadFormat)
-worksheetOver.write_row(21, 0, [runID, sample, avgCov, str(round(float(duplicateLevel)*100, 2))]+breadth.split(','))
+worksheetOver.write_row(20, 0, [runID, sample, avgCov, str(round(float(duplicateLevel)*100, 2))]+breadth.split(','))
 
 if lowPos == 0:  # From Hotspot sheet
-    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
-    worksheetOver.write(25, 0, str(lowPos))
+    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
+    worksheetOver.write(24, 0, str(lowPos))
 else:
-    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
-    worksheetOver.write(25, 0, str(lowPos), redFormat)
-    worksheetOver.write_url(26, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
+    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
+    worksheetOver.write(24, 0, str(lowPos), redFormat)
+    worksheetOver.write_url(25, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
 
-worksheetOver.write(27, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
-worksheetOver.write(28, 0, str(lowRegions))  # From Cov sheet
-worksheetOver.write(31, 0, 'Hotspotlist: '+hotspotFile)
-worksheetOver.write(32, 0, 'Artefact file: '+artefactFile)
-worksheetOver.write(33, 0, 'Germline file: '+germlineFile)
-worksheetOver.write(34, 0, 'Pindel artefact file: '+pindelArtefactFile)
+worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
+worksheetOver.write(27, 0, str(lowRegions))  # From Cov sheet
+
+worksheetOver.write(29,0, 'Bedfile: '+bedfile)
+worksheetOver.write(30, 0, 'Hotspotlist: '+hotspotFile)
+worksheetOver.write(31, 0, 'Artefact file: '+artefactFile)
+worksheetOver.write(32, 0, 'Germline file: '+germlineFile)
+worksheetOver.write(33, 0, 'Pindel artefact file: '+pindelArtefactFile)
 
 
 ''' Prog Version sheet (8), added last '''

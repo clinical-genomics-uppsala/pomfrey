@@ -49,7 +49,8 @@ runID = config_list['seqID']['sequencerun']  # sys.argv[3]
 minCov = int(config_list['cartool']['cov'].split(' ')[0])
 medCov = int(config_list['cartool']['cov'].split(' ')[1])  # int(sys.argv[6])
 maxCov = int(config_list['cartool']['cov'].split(' ')[2])  # int(sys.argv[7])
-bedfile = config_list["bed"]["pindel"]  # sys.argv[8]
+bedfile = config_list["bed"]["bedfile"]
+pindelBedfile = config_list["bed"]["pindel"]  # sys.argv[8]
 hotspotFile = config_list["bed"]["hotspot"]  # sys.argv[9]
 artefactFile = config_list["bed"]["artefact"]  # sys.argv[10]
 pindelArtefactFile = config_list["bed"]["pindelArtefact"]
@@ -239,7 +240,7 @@ worksheetIndel.set_column('E:F', 10)  # pos
 worksheetIndel.write('A1', 'Pindel results', headingFormat)
 worksheetIndel.write_row(1, 0, emptyList, lineFormat)
 # Add genes as info before the actual table.
-with open(bedfile) as bed:
+with open(pindelBedfile) as bed:
     genesDup = [line.split("\t")[3].strip() for line in bed]
     genes = set(genesDup)
 
@@ -257,6 +258,12 @@ for gene in genes:
     row += 1
 
 row += 1
+worksheetIndel.write('A'+str(row),'Coverage below '+str(medCov)+'x', italicFormat)
+row += 1
+worksheetIndel.write('A'+str(row),'Variant in pindel artefact list.', orangeFormat)
+row += 1
+worksheetIndel.write('A'+str(row), 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact variants.')
+row += 2 
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Start', 'End', 'SV length', 'Af',
                 'Ref', 'Alt', 'Dp', 'Transcript', 'Mutation cds', 'ENSP', 'Max popAF', 'Max Pop']
 worksheetIndel.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
@@ -308,24 +315,18 @@ for indel in vcf_indel.fetch():
         if len(artLines) > 0:  # if pos exists and match in artefact file.
             orangeIndel.append(indelRow)
         else:
-            indelIgv = "external:IGV/"+indelGene+"-"+indel.contig+"_" + \
-                str(int(indel.pos)-1)+"_"+str(int(indel.pos)-1+len(alt))+".svg"
             if float(af) < 0.05:
                 underFiveIndel.append(indelRow)
-                underFiveIGVIndel.append(indelIgv)
             else:
                 whiteIndel.append(indelRow)
-                whiteIGVIndel.append(indelIgv)
 
 # Write to xlsx file
 i = 0
 for line in whiteIndel:
     if line[10] < medCov:
         worksheetIndel.write_row(row, col, line, italicFormat)
-        worksheetIndel.write_url('Q'+str(row+1), whiteIGVIndel[i], string="IGV image")
     else:
         worksheetIndel.write_row(row, col, line)
-        worksheetIndel.write_url('Q'+str(row+1), whiteIGVIndel[i], string="IGV image")
     row += 1
     i += 1
 
@@ -340,10 +341,8 @@ i = 0
 for line in underFiveIndel:
     if line[10] < medCov:
         worksheetIndel.write_row(row, col, line, italicFormat)
-        worksheetIndel.write_url('Q'+str(row+1), underFiveIGVIndel[i], string="IGV image")
     else:
         worksheetIndel.write_row(row, col, line)
-        worksheetIndel.write_url('Q'+str(row+1), underFiveIGVIndel[i], string="IGV image")
     row += 1
     i += 1
 
@@ -368,16 +367,17 @@ worksheetSNV.write('B10', 'Population freq (KGP, gnomAD, NHLBI_ESP ) <= 2%')
 worksheetSNV.write('B11', 'Biotype is protein coding')
 worksheetSNV.write('B12', 'Consequence not deemed relevant')
 
-worksheetSNV.write('A14', 'Coverage below 500x', italicFormat)
+worksheetSNV.write('A14', 'Coverage below '+str(medCov)+'x', italicFormat)
 worksheetSNV.write('A15', 'Variant in artefact list ', orangeFormat)
 worksheetSNV.write('A16', 'Variant likely germline', greenFormat)
+worksheetSNV.write('A17', 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
 
 # Variant table
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP', 'Transcript', 'Mutation cds', 'ENSP',
                 'Consequence', 'COSMIC ids on position', 'N COSMIC Hemato hits on position', 'Clinical significance', 'dbSNP',
                 'Max popAF', 'Max Pop', 'Callers']
-worksheetSNV.write_row('A18', tableheading, tableHeadFormat)  # 1 index
-row = 18  # 0 index
+worksheetSNV.write_row('A19', tableheading, tableHeadFormat)  # 1 index
+row = 19  # 0 index
 col = 0
 white = []
 green = []
@@ -515,7 +515,7 @@ for record in vcf_snv.fetch():
 # Actually writing to the excelsheet
 i = 0
 for line in white:
-    if line[8] < 500:
+    if line[8] < medCov:
         worksheetSNV.write_row(row, col, line, italicFormat)
     else:
         worksheetSNV.write_row(row, col, line)
@@ -523,14 +523,14 @@ for line in white:
     i += 1
 
 for line in green:
-    if line[8] < 500:
+    if line[8] < medCov:
         worksheetSNV.write_row(row, col, line, green_italicFormat)
     else:
         worksheetSNV.write_row(row, col, line, greenFormat)
     row += 1
 
 for line in orange:
-    if line[8] < 500:
+    if line[8] < medCov:
         worksheetSNV.write_row(row, col, line, orange_italicFormat)
     else:
         worksheetSNV.write_row(row, col, line, orangeFormat)
@@ -538,7 +538,7 @@ for line in orange:
 
 i = 0
 for line in underFive:
-    if line[8] < 500:
+    if line[8] < medCov:
         worksheetSNV.write_row(row, col, line, italicFormat)
     else:
         worksheetSNV.write_row(row, col, line)
@@ -665,9 +665,11 @@ else:
 
 worksheetOver.write(27, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
 worksheetOver.write(28, 0, str(lowRegions))  # From Cov sheet
-worksheetOver.write(30, 0, 'Hotspotlist: '+hotspotFile)
-worksheetOver.write(31, 0, 'Artefact file: '+artefactFile)
-worksheetOver.write(32, 0, 'Germline file: '+germlineFile)
+
+worksheetOver.write(30, 0, 'Bedfile: '+bedfile)
+worksheetOver.write(31, 0, 'Hotspotlist: '+hotspotFile)
+worksheetOver.write(32, 0, 'Artefact file: '+artefactFile)
+worksheetOver.write(33, 0, 'Germline file: '+germlineFile)
 
 
 ''' Prog Version sheet (8), added last '''
