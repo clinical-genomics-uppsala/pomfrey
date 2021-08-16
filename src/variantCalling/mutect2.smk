@@ -78,37 +78,56 @@ rule Mutect2:
                     -O {output.vcf}) &> {log}"
 
 
-rule filterMutect2:
-    input:
-        vcf="variantCalls/callers/mutect2/perChr/{sample}_{seqID}.{chr}.mutect2.unfilt.vcf.gz",
-        stats="variantCalls/callers/mutect2/perChr/{sample}_{seqID}.{chr}.mutect2.unfilt.vcf.gz.stats",
-        fasta=config["reference"]["ref"],
-    output:
-        temp("variantCalls/callers/mutect2/perChr/{sample}_{seqID}.{chr}.mutect2.vcf.gz"),
-    log:
-        "logs/variantCalling/mutect2/filter_{sample}_{seqID}.{chr}.log",
-    singularity:
-        config["singularitys"]["gatk4"]
-    shell:
-        "(gatk --java-options '-Xmx4g' FilterMutectCalls --max-alt-allele-count 3 --max-events-in-region 8 -R {input.fasta} \
-                    -V {input.vcf} -O {output}) &> {log}"
-
-
-rule Merge_vcf:
+rule merge_vcf:
     input:
         vcf=expand(
-            "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.mutect2.vcf.gz",
+            "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.mutect2.unfilt.vcf.gz",
             chr=chrom_list,
             seqID=config["seqID"]["sequencerun"],
         ),
     output:
-        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf",
+        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.vcf",
     log:
         "logs/variantCalling/mutect2/merge_vcf_{sample}_{seqID}.log",
     singularity:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat -o {output} -O v {input} ) &> {log}"
+
+
+rule merge_stats:
+    input:
+        stats=expand(
+              "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.mutect2.unfilt.vcf.gz.stats",
+              chr=chrom_list,
+              seqID=config["seqID"]["sequencerun"],
+        ),
+    output:
+        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.stats"
+    params:
+        lambda wildcards, input: " -stats ".join(input.stats)
+    log:
+        "logs/variantCalling/mutec2/merge_stats_{sample}_{seqID}.log"
+    singularity:
+        config["singularitys"]["gatk4"]
+    shell:
+          "(gatk --java-options '-Xmx4g' MergeMutectStats -O {output} -stats {params} ) &> {log}"
+
+
+rule filterMutect2:
+    input:
+        vcf="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.unfilt.vcf",
+        stats="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.unfilt.stats",
+        fasta=config["reference"]["ref"],
+    output:
+        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf",
+    log:
+        "logs/variantCalling/mutect2/filter_{sample}_{seqID}.log",
+    singularity:
+        config["singularitys"]["gatk4"]
+    shell:
+        "(gatk --java-options '-Xmx4g' FilterMutectCalls --max-alt-allele-count 3 --max-events-in-region 8 -R {input.fasta} \
+                    -V {input.vcf} -O {output} --stats {input.stats}) &> {log}"
 
 
 rule fixSB:
@@ -122,7 +141,7 @@ rule fixSB:
         "(sed -i 's/=SB/=SB_mutect2/g' {input}  && sed -i 's/:SB/:SB_mutect2/g' {input}) &> {log}"
 
 
-rule mutect2HardFilter:
+rule hardFilterMutect2:
     input:
         vcf="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.SB.vcf",
         wait="variantCalls/callers/mutect2/{sample}_{seqID}.SB.done",
@@ -131,14 +150,14 @@ rule mutect2HardFilter:
     params:
         config["programdir"]["dir"],
     log:
-        "logs/variantCalling/mutect2/{sample}_{seqID}.hardFilt.log",
+        "logs/variantCalling/mutect2/hardFilter_{sample}_{seqID}.log",
     singularity:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
 
-
-rule Merge_bam:
+        
+rule merge_bam:
     input:
         bams=expand(
             "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.indel.bam",
