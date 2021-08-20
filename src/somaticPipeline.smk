@@ -1,4 +1,11 @@
 ##Specify configfile and singularity folder in snakemake command.
+from snakemake.utils import min_version
+
+module pgx_workflow:
+    snakefile: "../pgx_module/Snakefile_pgx.smk"
+    config: config
+
+use rule * from pgx_workflow as pgx_*
 
 rule all:
     input:
@@ -55,6 +62,7 @@ rule all:
         expand(
             "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
         ),
+        rules.pgx_All.input
 
 
 wildcard_constraints:
