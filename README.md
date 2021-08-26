@@ -74,6 +74,7 @@ programdir:
 reference:
     ref: "" #Path to fasta ref and .fai
     bwa: "" #Path to bwa indexed ref
+    dbsnp: "" #PGX-module parameters
 
 configCache:
     multiqc: "${PATH_TO_POMFREY}/src/report/multiqc_config.yaml"
@@ -115,6 +116,10 @@ singularitys:
     vt: ""
     igv: ""
     multiqc: ""
+    gatk3:      "path/to/pgx_module/envs/gatk3.simg" #PGX-module parameters
+    rmarkdown:  "path/to/pgx_module/envs/rmarkdown.simg" #PGX-module parameters
+    samtools:   "path/to/pgx_module/envs/samtools.simg" #PGX-module parameters
+    get_target: "path/to/pgx_module/envs/target_variants_python.simg" #PGX-module parameters
 
 cartool:
     cov: "100 200 1000" #Coverage limits, first number minCov, second for hotspotlist, third wishful
@@ -131,7 +136,28 @@ seqID:
 samples:
    "${sampleName}": "${path_to_R1_fastq_gz}"
 
+table_data:
+    target_regions:        "data/genomic_regions/exons_variants_pharmacogenomics_18_06_2019_ex_cyp2d6.bed"
+    target_rsid:           "data/genomic_regions/target_rsid.bed"
+    haplotype_definitions: "data/haplotypes/haplotype_definitions.csv"
+    hidden_haplotypes:     "data/haplotypes/hidden_haplotpyes.csv"
+
+clinical_data:
+    clinical_guidelines:    "data/guidelines/clinical_guidelines.csv"
+    haplotype_activity:     "data/guidelines/haplotype_activity_score.csv"
+    interaction_guidelines: "data/guidelines/interaction_guidelines.csv"
+
+## Input location
+bam_location: "Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam"
+
+## Contact information for PGX reports
+name: "Person Persson"
+adress: "Gatuvägen stadsplatsen 81, 54321"
+mail: "me@mymail.me"
+phone: "070 123 45 78"
 ```
+
+For `#PGX-module parameters` please see [README](https://github.com/JoelAAs/pgx_module/tree/pgx_pomfrey#readme)
 
 #### Cluster Config
 Json file with config for submission on HPC. Need to be specified to suit you HPC. See cluster-config.json for example.
