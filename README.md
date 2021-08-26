@@ -1,7 +1,25 @@
 # Pomfrey
+This branch is for running with [Pgx_module](https://github.com/JoelAAs/pgx_module/tree/pgx_pomfrey) on branch pgx_pomfrey.
 ##### Hematology Twist Pipeline
 
 To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it is used together with slurm-drmaa to submit on the local HPC. If Horizon Myeloid DNA Reference Standard is used it should be named HD829 to be processed separately and not hold up the pipeline.
+
+
+### Installation
+```
+git clone https://github.com/clinical-genomics-uppsala/pomfrey
+cd pomfrey 
+git checkout pomfey_pgx
+git clone https://github.com/joelaas/pgx_module
+cd pgx_module 
+git checkout pgx_pomfrey
+
+cd envs
+chmod +x get_cointainers.sh
+sudo ./get_containers.sh
+```
+
+For pgx-specific parameters please read: [README](https://github.com/JoelAAs/pgx_module/tree/pgx_pomfrey#readme)
 
 ### Files & Caches
 - **SampleSheet.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
