@@ -1,13 +1,33 @@
 ##Specify configfile and singularity folder in snakemake command.
 from snakemake.utils import min_version
+min_version("6.6")
 
-module pgx_workflow:
-    snakefile: "../pgx_module/Snakefile_pgx.smk"
-    config: config
+## PGX samples based on sample sheet
+with open(config["samplesheet"], "r") as f:
+    lines = f.readlines()
+    samples = []
+    head_found = False
 
-use rule * from pgx_workflow as pgx_*
+    for start, line in enumerate(lines):
+        if line.strip() == "[Data]":
+            break
 
-rule all:
+    for i, head in lines[start + 1].strip().split():
+        if head == "PGX_Analysis":
+            break
+            head_found = True
+
+    if not head_found:
+        raise KeyError("No pgx_analysis head found in samplesheet!")
+    else:
+        for line in lines[start + 2:]:
+            words = line.strip().split()
+            if words[i] == "1":
+                samples.append(words[0])
+
+config["pgx_sample"] = [s for s in samples if s in config["sample"]]
+
+rule All:
     input:
         expand(
             "Results/{sample}_{seqID}/Data/{sample}_{seqID}.indel.bam",
@@ -61,8 +81,10 @@ rule all:
         expand("Results/batchQC_{seqID}/{seqID}_MultiQC.html", seqID=config["seqID"]["sequencerun"]),
         expand(
             "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
-        ),
-        rules.pgx_All.input
+        ),expand(
+             "work/{seqID}/Results/Report/{sample}_{seqID}_pgx.html",
+                sample=config["pgx_samples"],
+                seqID=config["seqID"]["sequencerun"])
 
 
 wildcard_constraints:
@@ -89,3 +111,10 @@ include: "CNV/run_GATK_CNV.smk"
 include: "report/multiqc.smk"  # per sample, add per batch as well but only certain results?
 include: "report/vcf2excel.smk"
 include: "report/igv-images.smk"  #per sample
+
+## PGX module import
+module pgx_workflow:
+    snakefile: "../pgx_module/Snakefile_pgx.smk"
+    config: config
+
+use rule * from pgx_workflow as pgx_*
