@@ -1,11 +1,11 @@
 localrules:
-    indexDecomp,
+    indexNormalized,
 
 
 rule decompose:
     input:
-        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz",
-        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf",
+        # tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi",
     output:
         temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.decomposed.vcf.gz"),
     log:
@@ -22,7 +22,7 @@ rule normalizeAll:
         fasta=config["reference"]["ref"],  #,
         # tbi = "variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi"
     output:
-        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz",
+        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
     log:
         "logs/variantCalling/vt/{sample}_{seqID}.{method}.normalized.log",
     singularity:
@@ -31,11 +31,11 @@ rule normalizeAll:
         "(vt normalize -n -r {input.fasta} -o {output} {input.vcf} ) &> {log}"
 
 
-rule indexDecomp:
+rule indexNormalized:
     input:
-        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
     output:
-        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz.tbi",
+        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz.tbi",
     log:
         "logs/variantCalling/vt/{sample}_{seqID}.{method}.index.log",
     singularity:

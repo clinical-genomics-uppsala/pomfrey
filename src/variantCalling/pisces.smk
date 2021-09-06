@@ -28,9 +28,6 @@ rule pisces:
                 --outfolder {params.outfolder} ) &> {log}"
 
 
-##Bed file?
-
-
 rule piscesFix:  ## use bcftools view --minalleles 2 {input} instead?
     input:
         "variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}-dedup.genome.vcf",
@@ -58,7 +55,7 @@ rule sortPisces:
         vcf="variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.pisces.unsorted.vcf",
         name="variantCalls/callers/pisces/{sample}_{seqID}-name.txt",
     output:
-        temp("variantCalls/callers/pisces/{sample}_{seqID}.pisces.weirdAF.vcf"),
+        temp("variantCalls/callers/pisces/{sample}_{seqID}.pisces.vcf"),
     singularity:
         config["singularitys"]["bcftools"]
     log:

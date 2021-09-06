@@ -24,7 +24,7 @@ rule sortFreebayes:
     input:
         "variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.unsort.vcf",
     output:
-        temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.weirdAF.vcf"),
+         temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.vcf"),
     singularity:
         config["singularitys"]["bcftools"]
     log:
