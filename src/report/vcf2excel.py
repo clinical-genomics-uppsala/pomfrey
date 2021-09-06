@@ -857,7 +857,7 @@ else:
 worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
 worksheetOver.write(27, 0, str(lowRegions))  # From Cov sheet
 
-worksheetOver.write(29,0, 'Bedfile: '+bedfile)
+worksheetOver.write(29, 0, 'Bedfile: '+bedfile)
 worksheetOver.write(30, 0, 'Hotspotlist: '+hotspotFile)
 worksheetOver.write(31, 0, 'Artefact file: '+artefactFile)
 worksheetOver.write(32, 0, 'Germline file: '+germlineFile)

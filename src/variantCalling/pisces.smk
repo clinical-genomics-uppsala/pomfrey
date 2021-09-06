@@ -27,10 +27,6 @@ rule pisces:
         "(dotnet /app/Pisces/Pisces.dll -b {input.bam} -g {input.reffolder} -i {params.bed} -t {threads} --filterduplicates TRUE \
                 --outfolder {params.outfolder} ) &> {log}"
 
-
-##Bed file?
-
-
 rule piscesFix:  ## use bcftools view --minalleles 2 {input} instead?
     input:
         "variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}-dedup.genome.vcf",
@@ -70,7 +66,6 @@ rule sortPisces:
 rule gVCFdecompose:
     input:
         vcf="variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}-dedup.genome.vcf",
-        # tbi = "variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.genome.vcf.tbi"
     output:
         temp("variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.decomp.genome.vcf"),
     log:

@@ -19,8 +19,7 @@ rule decompose:
 rule normalizeAll:
     input:
         vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.decomposed.vcf.gz",
-        fasta=config["reference"]["ref"],  #,
-        # tbi = "variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi"
+        fasta=config["reference"]["ref"], 
     output:
         "variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz",
     log:
