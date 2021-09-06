@@ -67,7 +67,6 @@ rule sortPisces:
 rule gVCFdecompose:
     input:
         vcf="variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}-dedup.genome.vcf",
-        # tbi = "variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.genome.vcf.tbi"
     output:
         temp("variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.decomp.genome.vcf"),
     log:

@@ -258,12 +258,12 @@ for gene in genes:
     row += 1
 
 row += 1
-worksheetIndel.write('A'+str(row),'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetIndel.write('A'+str(row), 'Coverage below '+str(medCov)+'x', italicFormat)
 row += 1
-worksheetIndel.write('A'+str(row),'Variant in pindel artefact list.', orangeFormat)
+worksheetIndel.write('A'+str(row), 'Variant in pindel artefact list.', orangeFormat)
 row += 1
 worksheetIndel.write('A'+str(row), 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact variants.')
-row += 2 
+row += 2
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Start', 'End', 'SV length', 'Af',
                 'Ref', 'Alt', 'Dp', 'Transcript', 'Mutation cds', 'ENSP', 'Max popAF', 'Max Pop']
 worksheetIndel.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
@@ -306,7 +306,7 @@ for indel in vcf_indel.fetch():
 
         indelRow = [runID, sample, indelGene, indel.contig, indel.pos, indel.stop, svlen, af, indel.ref,
                     alt, indel.info["DP"], indelTranscript, indelCodingName, indelEnsp, maxPopAfIndel, maxPopIndel]
-        if indel.pos > 28608040 and indel.pos < 28608054 :
+        if indel.pos > 28608040 and indel.pos < 28608054:
             itdLines.append([af, indel.info["DP"], indel.ref, alt, svlen])
         # Sort based on artefact file
         cmdArt = 'grep -w '+str(indel.pos)+' '+pindelArtefactFile + '| grep -w '+str(indel.contig)

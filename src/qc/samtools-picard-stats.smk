@@ -56,8 +56,6 @@ rule getStatsforMqc:
         batch="Results/batchQC_{seqID}/{seqID}_stats_unsorted.csv",
     output:
         batchTmp=temp("qc/{sample}_{seqID}/{sample}_batchStats.done"),
-        # batch = "qc/{seqID}_stats_mqc.tsv",
-        # sample="qc/{sample}_{seqID}/{sample}_{seqID}_stats_mqc.csv",
     params:
         dir=config["programdir"]["dir"],
     log:
