@@ -23,4 +23,5 @@ rule cutadapt:
     singularity:
         config["singularitys"]["cutadapt"]
     shell:
-        "(cutadapt {params.adapters_r1} {params.adapters_r2} {params.others} -o {output.fastq1} -p {output.fastq2} -j {threads} {input} > {output.qc} ) &> {log}"
+        "(cutadapt {params.adapters_r1} {params.adapters_r2} {params.others} -o {output.fastq1} -p {output.fastq2} "
+        "-j {threads} {input} > {output.qc} ) &> {log}"

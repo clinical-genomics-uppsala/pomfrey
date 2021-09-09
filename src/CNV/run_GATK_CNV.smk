@@ -16,8 +16,8 @@ rule collectReadCounts:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} \
-                  --interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} "
+        "--interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
 
 
 rule denoiseReadCounts:
@@ -32,10 +32,8 @@ rule denoiseReadCounts:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} \
-                --count-panel-of-normals {input.hdf5PoN} \
-                --standardized-copy-ratios {output.stdCopyRatio} \
-                --denoised-copy-ratios {output.denoisedCopyRatio} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} --count-panel-of-normals {input.hdf5PoN} "
+        "--standardized-copy-ratios {output.stdCopyRatio} --denoised-copy-ratios {output.denoisedCopyRatio} ) &> {log}"
 
 
 rule collectAllelicCounts:
@@ -51,9 +49,8 @@ rule collectAllelicCounts:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} \
-                -I {input.bam} -R {input.ref} \
-                -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} -I {input.bam} -R {input.ref} "
+        "-O {output} ) &> {log}"
 
 
 rule modelSegments:
@@ -77,10 +74,8 @@ rule modelSegments:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' ModelSegments \
-                --denoised-copy-ratios {input.denoisedCopyRatio} \
-                --allelic-counts {input.allelicCounts} \
-                --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' ModelSegments --denoised-copy-ratios {input.denoisedCopyRatio} "
+        "--allelic-counts {input.allelicCounts} --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log}"
 
 
 rule callCopyRatioSegments:
@@ -93,8 +88,7 @@ rule callCopyRatioSegments:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk CallCopyRatioSegments --input {input} \
-                --output {output} ) &> {log}"
+        "(gatk CallCopyRatioSegments --input {input} --output {output} ) &> {log}"
 
 
 rule plotModeledSegments:
@@ -106,7 +100,7 @@ rule plotModeledSegments:
     output:
         "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
     params:
-        outDir="CNV/",  
+        outDir="CNV/",
         outPrefix="{sample}_{seqID}_clean.calledCNVs",  #--minimum-contig-length 46709983
         pointSize=2.0,
     log:
@@ -114,11 +108,9 @@ rule plotModeledSegments:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} \
-                --allelic-counts {input.allelicCounts} --segments {input.segments} \
-                --sequence-dictionary {input.refDict} \
-                --point-size-allele-fraction {params.pointSize} --point-size-copy-ratio {params.pointSize} \
-                --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log} "
+        "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} --allelic-counts {input.allelicCounts} "
+        "--segments {input.segments} --sequence-dictionary {input.refDict} --point-size-allele-fraction {params.pointSize} "
+        "--point-size-copy-ratio {params.pointSize} --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log} "
 
 
 #

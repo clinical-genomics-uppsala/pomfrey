@@ -74,8 +74,8 @@ rule Mutect2:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' Mutect2 -R {input.fasta} -I {input.bam} -L {input.bed} --bam-output {output.bam} \
-                    -O {output.vcf}) &> {log}"
+        "(gatk --java-options '-Xmx4g' Mutect2 -R {input.fasta} -I {input.bam} -L {input.bed} --bam-output {output.bam} "
+        "-O {output.vcf}) &> {log}"
 
 
 rule merge_vcf:
@@ -98,20 +98,20 @@ rule merge_vcf:
 rule merge_stats:
     input:
         stats=expand(
-              "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.mutect2.unfilt.vcf.gz.stats",
-              chr=chrom_list,
-              seqID=config["seqID"]["sequencerun"],
+            "variantCalls/callers/mutect2/perChr/{{sample}}_{seqID}.{chr}.mutect2.unfilt.vcf.gz.stats",
+            chr=chrom_list,
+            seqID=config["seqID"]["sequencerun"],
         ),
     output:
-        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.stats"
+        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.stats",
     params:
-        lambda wildcards, input: " -stats ".join(input.stats)
+        lambda wildcards, input: " -stats ".join(input.stats),
     log:
-        "logs/variantCalling/mutec2/merge_stats_{sample}_{seqID}.log"
+        "logs/variantCalling/mutec2/merge_stats_{sample}_{seqID}.log",
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-          "(gatk --java-options '-Xmx4g' MergeMutectStats -O {output} -stats {params} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' MergeMutectStats -O {output} -stats {params} ) &> {log}"
 
 
 rule filterMutect2:
@@ -126,8 +126,8 @@ rule filterMutect2:
     singularity:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' FilterMutectCalls --max-alt-allele-count 3 --max-events-in-region 8 -R {input.fasta} \
-                    -V {input.vcf} -O {output} --stats {input.stats}) &> {log}"
+        "(gatk --java-options '-Xmx4g' FilterMutectCalls --max-alt-allele-count 3 --max-events-in-region 8 -R {input.fasta} "
+        "-V {input.vcf} -O {output} --stats {input.stats}) &> {log}"
 
 
 rule fixSB:
@@ -156,7 +156,7 @@ rule hardFilterMutect2:
     shell:
         "(python3.6 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
 
-        
+
 rule merge_bam:
     input:
         bams=expand(

@@ -32,8 +32,8 @@ rule makePassVCF:
     singularity:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} \
-                    {input.hemato} {output} ) &>{log}"
+        "(python3.6 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
+        "{input.hemato} {output} ) &>{log}"
 
 
 rule appendPindeltoPASS:
@@ -75,15 +75,15 @@ rule createBatFile:
     singularity:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} \
-                    {params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
+        "(python3.6 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
+        "{params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
 
 
 rule igv:
     input:
         bat="Results/{sample}_{seqID}/Reports/IGV/{sample}_{seqID}-igv.bat",
     output:
-        touch("Results/{sample}_{seqID}/Reports/IGV/done-igv.txt"), 
+        touch("Results/{sample}_{seqID}/Reports/IGV/done-igv.txt"),
     log:
         "logs/report/{sample}_{seqID}.igv.log",
     wildcard_constraints:

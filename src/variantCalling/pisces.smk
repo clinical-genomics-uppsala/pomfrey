@@ -24,8 +24,9 @@ rule pisces:
     singularity:
         config["singularitys"]["pisces"]
     shell:  #Remove gVCF False for genome vcf and save for db, and artifacts? -gVCF FALSE
-        "(dotnet /app/Pisces/Pisces.dll -b {input.bam} -g {input.reffolder} -i {params.bed} -t {threads} --filterduplicates TRUE \
-                --outfolder {params.outfolder} ) &> {log}"
+        "(dotnet /app/Pisces/Pisces.dll -b {input.bam} -g {input.reffolder} -i {params.bed} -t {threads} "
+        "--filterduplicates TRUE --outfolder {params.outfolder} ) &> {log}"
+
 
 rule piscesFix:  ## use bcftools view --minalleles 2 {input} instead?
     input:

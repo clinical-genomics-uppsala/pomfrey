@@ -21,7 +21,8 @@ rule recall:
     singularity:
         config["singularitys"]["recall"]
     shell:  ##Remove filtered?? if so --nofiltered
-        "(bcbio-variation-recall ensemble -n {params.support} --names {params.order} {output.vcf} {input.ref} {input.vcfs}) &> {log}"
+        "(bcbio-variation-recall ensemble -n {params.support} --names {params.order} {output.vcf} {input.ref} "
+        "{input.vcfs}) &> {log}"
 
 
 rule sort_recall:
@@ -36,9 +37,9 @@ rule sort_recall:
     singularity:
         config["singularitys"]["bcftools"]
     shell:
-        "( tabix -f {input} && \
-                bcftools sort -o {output.vcf} -O z {input} && \
-                tabix {output.vcf} ) &> {log}"
+        "( tabix -f {input} && "
+        "bcftools sort -o {output.vcf} -O z {input} && "
+        "tabix {output.vcf} ) &> {log}"
 
 
 rule filter_recall:
@@ -89,7 +90,7 @@ rule sort_multiPASS:
         "variantCalls/recall/{sample}_{seqID}.multiPASS.vcf",
     output:
         vcf="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz",
-        tbi="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz.tbi",  
+        tbi="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz.tbi",
     log:
         "logs/recall/{sample}_{seqID}.multiPASS.sort.log",
     singularity:

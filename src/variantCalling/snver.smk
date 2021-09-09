@@ -13,7 +13,7 @@ rule snver:
     output:
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.raw.vcf"),
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.filter.vcf"),
-        temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.raw.vcf"),  
+        temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.raw.vcf"),
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.filter.vcf"),
     params:
         outfolder="variantCalls/callers/snver/{sample}_{seqID}.snver",

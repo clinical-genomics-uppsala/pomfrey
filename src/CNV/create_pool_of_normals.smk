@@ -20,8 +20,8 @@ rule bedToIntervalList:
     singularity:
         config["singularity"]["gatk4"]
     shell:
-        "(gatk BedToIntervalList  -I {input.bed} -O {output} \
-                -SD {input.refDict} ) &> {log} "
+        "(gatk BedToIntervalList  -I {input.bed} -O {output} "
+        "-SD {input.refDict} ) &> {log} "
 
 
 rule preprocessIntervals:
@@ -38,9 +38,9 @@ rule preprocessIntervals:
     singularity:
         config["singularity"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' PreprocessIntervals -L {input.intervalList} -R {input.ref} \
-                    --bin-length {params.binLength} --interval-merging-rule {params.mergingRule}\
-                    -O {output} ) &> {log} "
+        "(gatk --java-options '-Xmx4g' PreprocessIntervals -L {input.intervalList} -R {input.ref} "
+        "--bin-length {params.binLength} --interval-merging-rule {params.mergingRule} "
+        "-O {output} ) &> {log} "
 
 
 # From here need to be redone when added new samples
@@ -57,8 +57,8 @@ rule collectReadCounts:
     singularity:
         config["singularity"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} \
-                  --interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} "
+        "--interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
 
 
 rule createReadCountPanelOfNormals:
@@ -74,6 +74,6 @@ rule createReadCountPanelOfNormals:
     singularity:
         config["singularity"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CreateReadCountPanelOfNormals -I {params.input} \
-                --minimum-interval-median-percentile {params.minIntervalMedianPerc} \
-                -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CreateReadCountPanelOfNormals -I {params.input} "
+        "--minimum-interval-median-percentile {params.minIntervalMedianPerc} "
+        "-O {output} ) &> {log}"
