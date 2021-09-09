@@ -86,7 +86,7 @@ rule merge_vcf:
             seqID=config["seqID"]["sequencerun"],
         ),
     output:
-        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.vcf",
+        temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.vcf"),
     log:
         "logs/variantCalling/mutect2/merge_vcf_{sample}_{seqID}.log",
     singularity:
@@ -120,7 +120,7 @@ rule filterMutect2:
         stats="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.unfilt.stats",
         fasta=config["reference"]["ref"],
     output:
-        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf",
+        temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf"),
     log:
         "logs/variantCalling/mutect2/filter_{sample}_{seqID}.log",
     singularity:
@@ -146,7 +146,7 @@ rule hardFilterMutect2:
         vcf="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.SB.vcf",
         wait="variantCalls/callers/mutect2/{sample}_{seqID}.SB.done",
     output:
-        temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.weirdAF.vcf"),
+        temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.vcf"),
     params:
         config["programdir"]["dir"],
     log:
