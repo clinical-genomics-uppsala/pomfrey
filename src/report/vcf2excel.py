@@ -43,7 +43,7 @@ worksheetOver = workbook.add_worksheet('Overview')
 worksheetShortList = workbook.add_worksheet('ShortList')
 worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')  # .... sys.argv[2]
-worksheetIntron = workbook.add_worksheet('Intron')
+worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
 worksheetCNV = workbook.add_worksheet('CNV')
 worksheetLowCov = workbook.add_worksheet('Low Coverage')  # ... sys.argv[3]
 worksheetHotspot = workbook.add_worksheet('Hotspot')
@@ -102,14 +102,6 @@ for containerTuple in containers:
     container = list(containerTuple)
     worksheetVersions.write_row('A'+str(row), container)
     row += 1
-# with open('containers.txt') as file:
-#     singularitys = [line.strip() for line in file]
-#     # singularitys.pop() ##Last slurm is always the makeContainersList rule.
-#     row = 7
-#     col = 0
-#     for singularity in singularitys:
-#         worksheetVersions.write_row(row,col,[singularity])
-#         row += 1
 
 
 ''' QCI sheet (8) '''
@@ -344,9 +336,9 @@ for line in outLines:
     row += 1
 
 
-''' Intron (4) '''
+''' Intron and synonymous (4) '''
 worksheetIntron.set_column('D:E', 10)
-worksheetIntron.write('A1', 'Intron and non-coding variants', headingFormat)
+worksheetIntron.write('A1', 'Intron, non-coding and synonymous variants', headingFormat)
 worksheetIntron.write_row(1, 0, emptyList, lineFormat)
 worksheetIntron.write('A3', 'Sample: '+str(sample))
 
@@ -357,11 +349,21 @@ worksheetIntron.write('B9', 'Allele Frequency >= 20%')
 # worksheetIntron.write('B9','Biotype is protein coding') #Nej
 # worksheetIntron.write('B10','Consequence not deemed relevant') #nej
 
-worksheetIntron.write('A11', 'Regions: ')
+worksheetIntron.write('A11', 'Intron Regions: ')
 row = 11
 col = 0
 for gene in intronDict:
     worksheetIntron.write_row('B'+str(row), [gene]+intronDict[gene])
+    row += 1
+
+# Add GATA2 synonymous Variants
+worksheetIntron.write('A'+str(row+1), 'GATA2 (NM_032638.4) synonymous variants: ')
+row += 2
+gata2Variants = [[ 'c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
+                ['c.981G>A', 'chr3', '128202739', 'C', 'T'], ['c.649C>T', 'chr3', '128204792', 'G', 'A'],
+                ['c.351C>G', 'chr3', '128205090', 'G', 'C']]
+for gata2Variant in gata2Variants:
+    worksheetIntron.write_row('B'+str(row), gata2Variant)
     row += 1
 
 row += 1
@@ -369,14 +371,15 @@ worksheetIntron.write('A'+str(row), 'Coverage below '+str(medCov)+'x', italicFor
 row += 2
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP',
                 'Transcript', 'Mutation cds', 'ENSP', 'Consequence', 'Max popAF', 'Max Pop', 'Callers']
-worksheetIntron.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
+worksheetIntron.write('A'+str(row), 'Intron variants', tableHeadFormat)
+worksheetIntron.write_row('A'+str(row+1), tableheading, tableHeadFormat)  # 1 index
+row += 1
 
 for snv in vcf_snv.fetch():
     if "PopAF" not in snv.filter.keys():
         if snv.contig in introns:
             for pair in introns[snv.contig]:
                 if snv.pos >= pair[0] and snv.pos <= pair[1] and snv.info["AF"][0] >= 0.2:
-                    # import pdb; pdb.set_trace()
                     csq = snv.info["CSQ"][0]
                     gene = csq.split("|")[3]
                     transcript = csq.split("|")[10].split(":")[0]
@@ -416,6 +419,51 @@ for snv in vcf_snv.fetch():
                         worksheetIntron.write_row(row, col, line)
                     row += 1
 
+row += 1
+worksheetIntron.write(row, col, 'GATA2 variants', tableHeadFormat)
+worksheetIntron.write_row(row+1, col, tableheading, tableHeadFormat)
+row += 2
+for snv in vcf_snv.fetch('chr3'):
+    for gata2Variant in gata2Variants:
+        if snv.pos == int(gata2Variant[2]) and snv.alts[0] == gata2Variant[4]:
+            csq = snv.info["CSQ"][0]
+            gene = csq.split("|")[3]
+            transcript = csq.split("|")[10].split(":")[0]
+            consequence = csq.split("|")[1]
+            if len(csq.split("|")[10].split(":")) > 1:
+                codingName = csq.split("|")[10].split(":")[1]
+            else:
+                codingName = ''
+            popFreqsPop = ['AF', 'AFR_AF', 'AMR_AF', 'EAS_AF', 'EUR_AF', 'SAS_AF', 'gnomAD_AF', 'gnomAD_AFR_AF',
+                           'gnomAD_AMR_AF', 'gnomAD_ASJ_AF', 'gnomAD_EAS_AF', 'gnomAD_FIN_AF', 'gnomAD_NFE_AF',
+                           'gnomAD_OTH_AF', 'gnomAD_SAS_AF']
+            popFreqAllRaw = snv.info["CSQ"][0].split("|")[41:56]  # [42:57]
+            if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
+                popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
+                maxPopAf = max(popFreqAll)
+                maxIndex = [i for i, j in enumerate(popFreqAll) if j == maxPopAf]
+                if len(maxIndex) == 1:
+                    maxPop = popFreqsPop[maxIndex[0]]
+                else:
+                    popFreqPops = [popFreqsPop[x] for x in maxIndex]
+                    maxPop = "&".join(popFreqPops)
+            else:
+                maxPopAf = ''
+                maxPop = ''
+            try:
+                if snv.info["CALLERS"]:
+                    callers = ' & '.join(snv.info["CALLERS"])
+            except KeyError:
+                callers = 'Pisces-multi'
+
+            line = [runID, sample, gene, snv.contig, str(snv.pos), snv.ref, snv.alts[0], str(snv.info["AF"][0]), str(
+                snv.info["DP"]), transcript, codingName, ensp, consequence, maxPopAf, maxPop, callers]
+            if snv.info["DP"] < medCov:
+                worksheetIntron.write_row(row, col, line, italicFormat)
+            else:
+                worksheetIntron.write_row(row, col, line)
+            row += 1
+
 
 ''' Indel sheet (3) '''
 # Add genes as info before the actual table. Just use bed table as input? Sort uniq
@@ -433,7 +481,7 @@ for x in vcf_indel.header.records:
     if (x.key == 'reference'):
         refI = x.value
 worksheetIndel.write('A3', 'Sample: '+str(sample))
-worksheetIndel.write('A4', 'Reference used: '+str(refI))
+worksheetIndel.write('A4', 'Reference usynonymoussed: '+str(refI))
 worksheetIndel.write('A6', 'Genes included: ')
 row = 6
 for gene in genes:
@@ -819,7 +867,7 @@ worksheetOver.write(7, 0, "Sheets:", tableHeadFormat)
 worksheetOver.write_url(8, 0, "internal:'ShortList'!A1", string='Variants in genes to report')
 worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
-worksheetOver.write_url(11, 0, "internal:'Intron'!A1", string='Intron variants')
+worksheetOver.write_url(11, 0, "internal:'Intron'!A1", string='Intron & synonymous variants')
 worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
 worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(minCov)+'x')
 worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
