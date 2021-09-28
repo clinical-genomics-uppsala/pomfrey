@@ -523,20 +523,31 @@ for indel in vcf_indel.fetch():
             print(indel.alts)
             sys.exit()
 
-        csqIndel = indel.info["CSQ"][0]  # VEP annotation
-        indelGene = csqIndel.split("|")[3]
-        maxPopAfIndel = csqIndel.split("|")[56]  # [57]
+        csqIndel = indel.info["CSQ"][0].split("|")  # VEP annotation
+        indelGene = csqIndel[csqIndex.index('SYMBOL')]
 
-        if len(maxPopAfIndel) > 1:
-            maxPopAfIndel = round(float(maxPopAfIndel), 4)
-        maxPopIndel = csqIndel.split("|")[57]  # [61]
+        # Not using ExAC pop
+        popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+        popFreqAllRawIndel = csqIndel[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+        if any(popFreqAllRawIndel) and max([float(x) if x else 0 for x in popFreqAllRawIndel]) != 0:  # if all not empty
+            popFreqAllIndel = [float(x) if x else 0 for x in popFreqAllRawIndel]
+            maxPopAfIndel = max(popFreqAllIndel)
+            maxIndexIndel = [i for i, j in enumerate(popFreqAllIndel) if j == maxPopAfIndel]
+            if len(maxIndexIndel) == 1:
+                maxPopIndel = popFreqsPop[maxIndexIndel[0]]
+            else:
+                popFreqPopsIndel = [popFreqsPop[x] for x in maxIndexIndel]
+                maxPopIndel = "&".join(popFreqPopsIndel)
+        else:
+            maxPopAfIndel = ''
+            maxPopIndel = ''
 
-        indelTranscript = csqIndel.split("|")[10].split(":")[0]
-        if len(csqIndel.split("|")[10].split(":")) > 1:
-            indelCodingName = csqIndel.split("|")[10].split(":")[1]
+        indelTranscript = csqIndel[csqIndex.index('HGVSc')].split(":")[0]
+        if len(csqIndel[csqIndex.index('HGVSc')].split(":")) > 1:
+            indelCodingName = csqIndel[csqIndex.index('HGVSc')].split(":")[1]
         else:
             indelCodingName = ''
-        indelEnsp = csqIndel.split("|")[11]
+        indelEnsp = csqIndel[csqIndex.index('HGVSp')]
 
         indelRow = [runID, sample, indelGene, indel.contig, indel.pos, indel.stop, svlen, af, indel.ref,
                     alt, indel.info["DP"], indelTranscript, indelCodingName, indelEnsp, maxPopAfIndel, maxPopIndel]
