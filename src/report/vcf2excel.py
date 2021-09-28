@@ -385,19 +385,18 @@ for snv in vcf_snv.fetch():
         if snv.contig in introns:
             for pair in introns[snv.contig]:
                 if snv.pos >= pair[0] and snv.pos <= pair[1] and snv.info["AF"][0] >= 0.2:
-                    csq = snv.info["CSQ"][0]
-                    gene = csq.split("|")[3]
-                    transcript = csq.split("|")[10].split(":")[0]
-                    if len(csq.split("|")[10].split(":")) > 1:
-                        codingName = csq.split("|")[10].split(":")[1]
+                    csq = snv.info["CSQ"][0].split("|")
+                    gene = csq[csqIndex.index('SYMBOL')]
+                    transcript = csq[csqIndex.index('HGVSc')].split(":")[0]
+                    if len(csq[csqIndex.index('HGVSc')].split(":")) > 1:
+                        codingName = csq[csqIndex.index('HGVSc')].split(":")[1]
                     else:
                         codingName = ''
-                    ensp = csq.split("|")[11]
-                    consequence = csq.split("|")[1]
-                    popFreqsPop = ['AF', 'AFR_AF', 'AMR_AF', 'EAS_AF', 'EUR_AF', 'SAS_AF', 'gnomAD_AF', 'gnomAD_AFR_AF',
-                                   'gnomAD_AMR_AF', 'gnomAD_ASJ_AF', 'gnomAD_EAS_AF', 'gnomAD_FIN_AF', 'gnomAD_NFE_AF',
-                                   'gnomAD_OTH_AF', 'gnomAD_SAS_AF']
-                    popFreqAllRaw = snv.info["CSQ"][0].split("|")[41:56]  # [42:57]
+                    ensp = csq[csqIndex.index('HGVSp')]
+                    consequence = csq[csqIndex.index('Consequence')]
+
+                    popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+                    popFreqAllRaw = csq[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
                     if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
                         popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
                         maxPopAf = max(popFreqAll)
@@ -410,6 +409,7 @@ for snv in vcf_snv.fetch():
                     else:
                         maxPopAf = ''
                         maxPop = ''
+
                     try:
                         if snv.info["CALLERS"]:
                             callers = ' & '.join(snv.info["CALLERS"])
@@ -431,18 +431,18 @@ row += 2
 for snv in vcf_snv.fetch('chr3'):
     for gata2Variant in gata2Variants:
         if snv.pos == int(gata2Variant[2]) and snv.alts[0] == gata2Variant[4]:
-            csq = snv.info["CSQ"][0]
-            gene = csq.split("|")[3]
-            transcript = csq.split("|")[10].split(":")[0]
-            consequence = csq.split("|")[1]
-            if len(csq.split("|")[10].split(":")) > 1:
-                codingName = csq.split("|")[10].split(":")[1]
+            csq = snv.info["CSQ"][0].split("|")
+            gene = csq[csqIndex.index('SYMBOL')]
+            consequence = csq[csqIndex.index('Consequence')]
+            transcript = csq[csqIndex.index('HGVSc')].split(":")[0]
+            if len(csq[csqIndex.index('HGVSc')].split(":")) > 1:
+                codingName = csq[csqIndex.index('HGVSc')].split(":")[1]
             else:
                 codingName = ''
-            popFreqsPop = ['AF', 'AFR_AF', 'AMR_AF', 'EAS_AF', 'EUR_AF', 'SAS_AF', 'gnomAD_AF', 'gnomAD_AFR_AF',
-                           'gnomAD_AMR_AF', 'gnomAD_ASJ_AF', 'gnomAD_EAS_AF', 'gnomAD_FIN_AF', 'gnomAD_NFE_AF',
-                           'gnomAD_OTH_AF', 'gnomAD_SAS_AF']
-            popFreqAllRaw = snv.info["CSQ"][0].split("|")[41:56]  # [42:57]
+            ensp = csq[csqIndex.index('HGVSp')]
+
+            popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+            popFreqAllRaw = csq[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
             if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
                 popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
                 maxPopAf = max(popFreqAll)
@@ -455,14 +455,15 @@ for snv in vcf_snv.fetch('chr3'):
             else:
                 maxPopAf = ''
                 maxPop = ''
+
             try:
                 if snv.info["CALLERS"]:
                     callers = ' & '.join(snv.info["CALLERS"])
             except KeyError:
                 callers = 'Pisces-multi'
 
-            line = [runID, sample, gene, snv.contig, str(snv.pos), snv.ref, snv.alts[0], str(snv.info["AF"][0]), str(
-                snv.info["DP"]), transcript, codingName, ensp, consequence, maxPopAf, maxPop, callers]
+            line = [runID, sample, gene, snv.contig, str(snv.pos), snv.ref, snv.alts[0], str(snv.info["AF"][0]),
+                    str(snv.info["DP"]), transcript, codingName, ensp, consequence, maxPopAf, maxPop, callers]
             if snv.info["DP"] < medCov:
                 worksheetIntron.write_row(row, col, line, italicFormat)
             else:
@@ -732,6 +733,7 @@ for record in vcf_snv.fetch():
             else:
                 maxPopAf = ''
                 maxPop = ''
+
             # IGV image path for each SNV
             igv = "external:IGV/"+gene+"-"+record.contig+"_"+str(int(record.pos)-1)+"_"+str(int(record.pos)-1+len(alt))+".svg"
 
