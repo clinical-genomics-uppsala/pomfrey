@@ -481,7 +481,7 @@ for x in vcf_indel.header.records:
     if (x.key == 'reference'):
         refI = x.value
 worksheetIndel.write('A3', 'Sample: '+str(sample))
-worksheetIndel.write('A4', 'Reference usynonymoussed: '+str(refI))
+worksheetIndel.write('A4', 'Reference used: '+str(refI))
 worksheetIndel.write('A6', 'Genes included: ')
 row = 6
 for gene in genes:
