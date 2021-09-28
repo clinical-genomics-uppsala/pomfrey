@@ -87,6 +87,11 @@ for key in intronDict:
     else:
         introns[chr] = [intronDict[key][1:]]
 
+# VEP fields in list to get index
+for x in vcf_snv.header.records:
+    if 'CSQ' in str(x) :
+        csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
+
 
 ''' Prog Version sheet (9) '''
 worksheetVersions.write('A1', 'Version Log', headingFormat)
