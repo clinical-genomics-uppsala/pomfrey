@@ -58,6 +58,11 @@ germlineFile = config_list["bed"]["germline"]  # sys.argv[11]
 hematoCountFile = config_list["configCache"]["hemato"]  # sys.argv[12]
 variantLog = config_list["configCache"]["variantlist"]  # sys.argv[13]
 
+# VEP fields in list to get index
+for x in vcf_snv.header.records:
+    if 'CSQ' in str(x) :
+        csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
+
 ''' Create execl file and sheets. '''
 workbook = xlsxwriter.Workbook(output)
 worksheetOver = workbook.add_worksheet('Overview')
@@ -289,20 +294,31 @@ for indel in vcf_indel.fetch():
             print(indel.alts)
             sys.exit()
 
-        csqIndel = indel.info["CSQ"][0]  # VEP annotation
-        indelGene = csqIndel.split("|")[3]
-        maxPopAfIndel = csqIndel.split("|")[56]  # [57]
+        csqIndel = indel.info["CSQ"][0].split("|")  # VEP annotation
+        indelGene = csqIndel[csqIndex.index('SYMBOL')]
 
-        if len(maxPopAfIndel) > 1:
-            maxPopAfIndel = round(float(maxPopAfIndel), 4)
-        maxPopIndel = csqIndel.split("|")[57]  # [61]
+        # Not using ExAC pop
+        popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+        popFreqAllRawIndel = csqIndel[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+        if any(popFreqAllRawIndel) and max([float(x) if x else 0 for x in popFreqAllRawIndel]) != 0:  # if all not empty
+            popFreqAllIndel = [float(x) if x else 0 for x in popFreqAllRawIndel]
+            maxPopAfIndel = max(popFreqAllIndel)
+            maxIndexIndel = [i for i, j in enumerate(popFreqAllIndel) if j == maxPopAfIndel]
+            if len(maxIndexIndel) == 1:
+                maxPopIndel = popFreqsPop[maxIndexIndel[0]]
+            else:
+                popFreqPopsIndel = [popFreqsPop[x] for x in maxIndexIndel]
+                maxPopIndel = "&".join(popFreqPopsIndel)
+        else:
+            maxPopAfIndel = ''
+            maxPopIndel = ''
 
-        indelTranscript = csqIndel.split("|")[10].split(":")[0]
-        if len(csqIndel.split("|")[10].split(":")) > 1:
-            indelCodingName = csqIndel.split("|")[10].split(":")[1]
+        indelTranscript = csqIndel[csqIndex.index('HGVSc')].split(":")[0]
+        if len(csqIndel[csqIndex.index('HGVSc')].split(":")) > 1:
+            indelCodingName = csqIndel[csqIndex.index('HGVSc')].split(":")[1]
         else:
             indelCodingName = ''
-        indelEnsp = csqIndel.split("|")[11]
+        indelEnsp = csqIndel[csqIndex.index('HGVSp')]
 
         indelRow = [runID, sample, indelGene, indel.contig, indel.pos, indel.stop, svlen, af, indel.ref,
                     alt, indel.info["DP"], indelTranscript, indelCodingName, indelEnsp, maxPopAfIndel, maxPopIndel]
@@ -387,10 +403,11 @@ trusightSNV = []  # trusight genes only
 
 for record in vcf_snv.fetch():
     synoCosmicN = 0
-    csq = record.info["CSQ"][0]
+    csq = record.info["CSQ"][0].split("|")
+    gene = csq[csqIndex.index('SYMBOL')]
     # Add variants if syno and in cosmic hemto list
     if record.filter.keys() == ["Syno"]:  # Only if Syno not and popAF.   any(x in "Syno" for x in record.filter.keys()):
-        synoCosmicVepList = [cosmic for cosmic in csq.split("|")[17].split(
+        synoCosmicVepList = [cosmic for cosmic in csq[csqIndex.index('Existing_variation')].split(
             "&") if cosmic.startswith('CO')]  # Get all cosmicID in list
         if len(synoCosmicVepList) != 0:
             for synoCosmicId in synoCosmicVepList:
@@ -415,7 +432,7 @@ for record in vcf_snv.fetch():
             sys.exit()
 
         for knownLine in known:
-            if csq.split("|")[3] == knownLine[0] and str(record.pos) == knownLine[2]:
+            if gene == knownLine[0] and str(record.pos) == knownLine[2]:
                 knownFoundTemp.append(knownLine+[af, record.info["DP"], record.ref, alt])
 
         if af >= 0.03:
@@ -424,10 +441,9 @@ for record in vcf_snv.fetch():
                     callers = ' & '.join(record.info["CALLERS"])
             except KeyError:
                 callers = 'Pisces-multi'
-            csq = record.info["CSQ"][0]
-            gene = csq.split("|")[3]
-            clinical = csq.split("|")[58]  # [59]
-            existing = csq.split("|")[17].split("&")
+
+            clinical = csq[csqIndex.index('CLIN_SIG')]
+            existing = csq[csqIndex.index('Existing_variation')].split('&')
 
             # rs IDs use more than just the first!
             rsList = [rs for rs in existing if rs.startswith('rs')]
@@ -455,14 +471,16 @@ for record in vcf_snv.fetch():
                         cosmicNew = 0
                     cosmicN += int(cosmicNew)
 
-            transcript = csq.split("|")[10].split(":")[0]
-            codingName = csq.split("|")[10].split(":")[1]
-            consequence = csq.split("|")[1]
-            ensp = csq.split("|")[11]
+            transcript = csq[csqIndex.index('HGVSc')].split(":")[0]
+            if len(csq[csqIndex.index('HGVSc')].split(":")) > 1:
+                codingName = csq[csqIndex.index('HGVSc')].split(":")[1]
+            else:
+                codingName = ''
+            consequence = csq[csqIndex.index('Consequence')]
+            ensp = csq[csqIndex.index('HGVSp')]
 
-            popFreqsPop = ['AF', 'AFR_AF', 'AMR_AF', 'EAS_AF', 'EUR_AF', 'SAS_AF', 'gnomAD_AF', 'gnomAD_AFR_AF', 'gnomAD_AMR_AF',
-                           'gnomAD_ASJ_AF', 'gnomAD_EAS_AF', 'gnomAD_FIN_AF', 'gnomAD_NFE_AF', 'gnomAD_OTH_AF', 'gnomAD_SAS_AF']
-            popFreqAllRaw = record.info["CSQ"][0].split("|")[41:56]  # [42:57]
+            popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
+            popFreqAllRaw = csq[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
             if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
                 popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
                 maxPopAf = max(popFreqAll)
