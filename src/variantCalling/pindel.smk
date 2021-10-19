@@ -80,23 +80,16 @@ rule pindel2vcf:
 
 rule fixContigPindel:
     input:
-        "variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf",
+        vcf="variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf",
+        fasta=config["reference"]["ref"],
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.noDP.vcf"),
-    params:  ## awk '{printf("##contig=<ID=%s,length=%d>\\n",$1,$2);}' ref.fai
-        '"##contig=<ID=chr1,length=249250621>\\n##contig=<ID=chr2,length=243199373>\\n##contig=<ID=chr3,length=198022430> \
-        \\n##contig=<ID=chr4,length=191154276>\\n##contig=<ID=chr5,length=180915260>\\n##contig=<ID=chr6,length=171115067> \
-        \\n##contig=<ID=chr7,length=159138663>\\n##contig=<ID=chr8,length=146364022>\\n##contig=<ID=chr9,length=141213431> \
-        \\n##contig=<ID=chr10,length=135534747>\\n##contig=<ID=chr11,length=135006516>\\n##contig=<ID=chr12,length=133851895> \
-        \\n##contig=<ID=chr13,length=115169878>\\n##contig=<ID=chr14,length=107349540>\\n##contig=<ID=chr15,length=102531392> \
-        \\n##contig=<ID=chr16,length=90354753>\\n##contig=<ID=chr17,length=81195210>\\n##contig=<ID=chr18,length=78077248> \
-        \\n##contig=<ID=chr19,length=59128983>\\n##contig=<ID=chr20,length=63025520>\\n##contig=<ID=chr21,length=48129895> \
-        \\n##contig=<ID=chr22,length=51304566>\\n##contig=<ID=chrX,length=155270560>\\n##contig=<ID=chrY,length=59373566> \
-        \\n##contig=<ID=chrM,length=16571>\\n"',
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.fixContig.log",
+    singularity:
+        config["singularitys"]["gatk4"]
     shell:
-        """(cat {input} | grep -v "^##contig" | awk '/^#CHROM/ {{ printf({params});}} {{print;}}' > {output} )&> {log}  """
+        "(gatk UpdateVcfSequenceDictionary -I {input.vcf} -SD {input.fasta} -O {output}) &> {log}"
 
 
 rule fixPindelDPoAF:
