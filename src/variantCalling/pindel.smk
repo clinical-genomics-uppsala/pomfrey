@@ -40,7 +40,7 @@ rule pindel:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel.log",
     singularity:
         config["singularitys"]["pindel"]
-    threads: 4
+    threads: 5
     shell:
         " (pindel -f {input.ref} -i {input.bamconfig} -T {threads} -x {params.x} -B {params.B} -j {input.bed} "
         "-o variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} ) &> {log}"

@@ -7,7 +7,7 @@ rule markDuplicates:
         metric="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
     log:
         "logs/map/{sample}_{seqID}-dedup.log",
-    threads: 4  ##2??
+    threads: 5
     singularity:
         config["singularitys"]["bwa"]
     shell:

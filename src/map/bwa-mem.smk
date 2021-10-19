@@ -13,7 +13,7 @@ rule bwa_mem:
         index=config["reference"]["bwa"],
         extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
         sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
-    threads: 8
+    threads: 10
     singularity:
         config["singularitys"]["bwa"]  #bwa 0.7.17, samtools 1.9, picard 2.20.11
     shell:

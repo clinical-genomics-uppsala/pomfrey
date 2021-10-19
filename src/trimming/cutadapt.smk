@@ -19,7 +19,7 @@ rule cutadapt:
         others="--minimum-length 2 -q 20",
     log:
         "logs/trim/cutadapt/{sample}_{seqID}.log",
-    threads: 8
+    threads: 10
     singularity:
         config["singularitys"]["cutadapt"]
     shell:

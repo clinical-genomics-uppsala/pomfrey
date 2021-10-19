@@ -19,7 +19,7 @@ rule vep:
         "logs/variantCalling/vep/{sample}_{seqID}.log",
     singularity:
         config["singularitys"]["vep"]
-    threads: 8
+    threads: 10
     shell:
         "(vep --vcf --no_stats -o {output.vcf} -i {input.vcf} --dir_cache {input.cache} --fork {threads} --cache "
         "--refseq --offline --fasta {input.fasta} {params} ) &> {log}"

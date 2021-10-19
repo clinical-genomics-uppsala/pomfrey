@@ -11,7 +11,7 @@ rule vardict:
         af="0.01",
     log:
         "logs/variantCalling/vardict/{sample}_{seqID}.log",
-    threads: 4
+    threads: 5
     singularity:
         config["singularitys"]["vardict"]
     shell:
