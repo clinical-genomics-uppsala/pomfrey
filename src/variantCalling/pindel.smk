@@ -61,12 +61,12 @@ rule pindel2vcf:
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf"),
     params:
-        e=10,  #min supporting reads 35
-        mc=10,  #min coverage
-        minsize=5,  #min size of reported 5
+        e=10,  # min supporting reads 35
+        mc=10,  # min coverage
+        minsize=5,  # min size of reported 5
         refname="hg19",
-        refdate=000000,  #Can I add seqID instead? config["seqID"]["sequencerun"]
-	    he=0.01 #Hetrozygot call to be included in QCI
+        refdate=000000,  # Can I add seqID instead? config["seqID"]["sequencerun"]
+        he=0.01,  # Hetrozygot call to be included in QCI
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel2vcf.log",
     singularity:
@@ -122,18 +122,18 @@ rule annotatePindel:
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.ann.vcf"),
     params:
-        "--check_existing --pick --sift b --polyphen b --ccds --uniprot --hgvs --symbol --numbers --domains \
-        --regulatory --canonical --protein --biotype --uniprot --tsl --appris --gene_phenotype --af --af_1kg --af_gnomad \
-        --max_af --pubmed --variant_class ",
+        "--check_existing --pick --sift b --polyphen b --ccds --uniprot --hgvs --symbol --numbers --domains --regulatory "
+        "--canonical --protein --biotype --uniprot --tsl --appris --gene_phenotype --af --af_1kg --af_gnomad --max_af "
+        "--pubmed --variant_class ",
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.ann.log",
     threads: 8
     singularity:
         config["singularitys"]["vep"]
     shell:
-        """(if [[ $(cat {input.vcf} | grep -v '^#' | wc -l) -eq 0 ]]; then mv {input.vcf} {output}; else
-        vep --vcf --no_stats -o {output} -i {input.vcf} --dir_cache {input.cache} --fork {threads} --cache --refseq \
-        --offline --fasta {input.fasta} {params} ; fi) &> {log}"""
+        "(if [[ $(cat {input.vcf} | grep -v '^#' | wc -l) -eq 0 ]]; then mv {input.vcf} {output}; else "
+        "vep --vcf --no_stats -o {output} -i {input.vcf} --dir_cache {input.cache} --fork {threads} --cache --refseq "
+        "--offline --fasta {input.fasta} {params} ; fi) &> {log}"
 
 
 rule filterPindel:

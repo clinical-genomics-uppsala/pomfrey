@@ -1,5 +1,3 @@
-##Specify configfile and singularity folder in snakemake command.
-
 rule all:
     input:
         expand(

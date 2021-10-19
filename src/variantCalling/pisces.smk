@@ -28,7 +28,6 @@ rule pisces:
         "--filterduplicates TRUE --outfolder {params.outfolder} ) &> {log}"
 
 
-
 rule piscesFix:  ## use bcftools view --minalleles 2 {input} instead?
     input:
         "variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}-dedup.genome.vcf",

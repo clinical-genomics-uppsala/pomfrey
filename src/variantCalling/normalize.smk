@@ -5,7 +5,6 @@ localrules:
 rule decompose:
     input:
         vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf",
-        # tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf.gz.tbi",
     output:
         temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.decomposed.vcf.gz"),
     log:
