@@ -89,7 +89,7 @@ for key in intronDict:
 
 # VEP fields in list to get index
 for x in vcf_snv.header.records:
-    if 'CSQ' in str(x) :
+    if 'CSQ' in str(x):
         csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
 
 
@@ -364,11 +364,11 @@ for gene in intronDict:
 # Add GATA2 synonymous Variants
 worksheetIntron.write('A'+str(row+1), 'GATA2 (NM_032638.4) and TP53 synonymous variants: ')
 row += 2
-synoVariants = [[ 'c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
+synoVariants = [['c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
                 ['c.981G>A', 'chr3', '128202739', 'C', 'T'], ['c.649C>T', 'chr3', '128204792', 'G', 'A'],
                 ['c.351C>G', 'chr3', '128205090', 'G', 'C'], ['c.375G>A', 'chr17', '7579312', 'C', 'T'],
                 ['c.375G>T', 'chr17', '7579312', 'C', 'A'], ['c.375G>C', 'chr17', '7579312', 'C', 'G'],
-                ['c.672G>A', 'chr17', '7578177', 'C', 'T' ], ['c.993G>A','chr17', '7576853', 'C', 'T']]
+                ['c.672G>A', 'chr17', '7578177', 'C', 'T'], ['c.993G>A', 'chr17', '7576853', 'C', 'T']]
 
 synoFound = []
 
@@ -659,7 +659,7 @@ for record in vcf_snv.fetch():
 
     if record.filter.keys() == ["Syno"]:  # Only if Syno not and popAF.   any(x in "Syno" for x in record.filter.keys()):
         synoCosmicVepList = [cosmic for cosmic in csq[csqIndex.index('Existing_variation')].split("&")
-                            if cosmic.startswith('CO')]  # Get all cosmicID in list
+                             if cosmic.startswith('CO')]  # Get all cosmicID in list
         # COSMIC Hemato
         if len(synoCosmicVepList) != 0:
             for synoCosmicId in synoCosmicVepList:
@@ -694,7 +694,7 @@ for record in vcf_snv.fetch():
                 callers = 'Pisces-multi'
 
             gene = csq[csqIndex.index('SYMBOL')]
-            clinical = csq[csqIndex.index('CLIN_SIG')] #split("|")[58]
+            clinical = csq[csqIndex.index('CLIN_SIG')]  # split("|")[58]
             existing = csq[csqIndex.index('Existing_variation')].split('&')
 
             # rs IDs use more than just the first!
@@ -729,7 +729,6 @@ for record in vcf_snv.fetch():
             else:
                 codingName = ''
             ensp = csq[csqIndex.index('HGVSp')]
-
 
             popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
             popFreqAllRaw = csq[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]

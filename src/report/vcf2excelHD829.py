@@ -60,7 +60,7 @@ variantLog = config_list["configCache"]["variantlist"]  # sys.argv[13]
 
 # VEP fields in list to get index
 for x in vcf_snv.header.records:
-    if 'CSQ' in str(x) :
+    if 'CSQ' in str(x):
         csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
 
 ''' Create execl file and sheets. '''
