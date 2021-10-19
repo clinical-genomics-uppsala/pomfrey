@@ -362,13 +362,18 @@ for gene in intronDict:
     row += 1
 
 # Add GATA2 synonymous Variants
-worksheetIntron.write('A'+str(row+1), 'GATA2 (NM_032638.4) synonymous variants: ')
+worksheetIntron.write('A'+str(row+1), 'GATA2 (NM_032638.4) and TP53 synonymous variants: ')
 row += 2
-gata2Variants = [[ 'c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
+synoVariants = [[ 'c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
                 ['c.981G>A', 'chr3', '128202739', 'C', 'T'], ['c.649C>T', 'chr3', '128204792', 'G', 'A'],
-                ['c.351C>G', 'chr3', '128205090', 'G', 'C']]
-for gata2Variant in gata2Variants:
-    worksheetIntron.write_row('B'+str(row), gata2Variant)
+                ['c.351C>G', 'chr3', '128205090', 'G', 'C'], ['c.375G>A', 'chr17', '7579312', 'C', 'T'],
+                ['c.375G>T', 'chr17', '7579312', 'C', 'A'], ['c.375G>C', 'chr17', '7579312', 'C', 'G'],
+                ['c.672G>A', 'chr17', '7578177', 'C', 'T' ], ['c.993G>A','chr17', '7576853', 'C', 'T']]
+
+synoFound = []
+
+for synoVariant in synoVariants:
+    worksheetIntron.write_row('B'+str(row), synoVariant)
     row += 1
 
 row += 1
@@ -381,6 +386,7 @@ worksheetIntron.write_row('A'+str(row+1), tableheading, tableHeadFormat)  # 1 in
 row += 1
 
 for snv in vcf_snv.fetch():
+    ''' Intron variants with allel freq over 20 % in specified regions (intronDict) '''
     if "PopAF" not in snv.filter.keys():
         if snv.contig in introns:
             for pair in introns[snv.contig]:
@@ -423,14 +429,9 @@ for snv in vcf_snv.fetch():
                     else:
                         worksheetIntron.write_row(row, col, line)
                     row += 1
-
-row += 1
-worksheetIntron.write(row, col, 'GATA2 variants', tableHeadFormat)
-worksheetIntron.write_row(row+1, col, tableheading, tableHeadFormat)
-row += 2
-for snv in vcf_snv.fetch('chr3'):
-    for gata2Variant in gata2Variants:
-        if snv.pos == int(gata2Variant[2]) and snv.alts[0] == gata2Variant[4]:
+    ''' Specific synonymous variants in GATA2 and TP53 (synoVariants) '''
+    for synoVariant in synoVariants:
+        if snv.contig == synoVariant[1] and snv.pos == int(synoVariant[2]) and snv.alts[0] == synoVariant[4]:
             csq = snv.info["CSQ"][0].split("|")
             gene = csq[csqIndex.index('SYMBOL')]
             consequence = csq[csqIndex.index('Consequence')]
@@ -464,11 +465,18 @@ for snv in vcf_snv.fetch('chr3'):
 
             line = [runID, sample, gene, snv.contig, str(snv.pos), snv.ref, snv.alts[0], str(snv.info["AF"][0]),
                     str(snv.info["DP"]), transcript, codingName, ensp, consequence, maxPopAf, maxPop, callers]
-            if snv.info["DP"] < medCov:
-                worksheetIntron.write_row(row, col, line, italicFormat)
-            else:
-                worksheetIntron.write_row(row, col, line)
-            row += 1
+            synoFound.append(line)
+
+row += 1
+worksheetIntron.write(row, col, 'Synonymous variants', tableHeadFormat)
+worksheetIntron.write_row(row+1, col, tableheading, tableHeadFormat)
+row += 2
+for line in synoFound:
+    if int(line[8]) < medCov:
+        worksheetIntron.write_row(row, col, line, italicFormat)
+    else:
+        worksheetIntron.write_row(row, col, line)
+        row += 1
 
 
 ''' Indel sheet (3) '''
@@ -684,7 +692,7 @@ for record in vcf_snv.fetch():
                     callers = ' & '.join(record.info["CALLERS"])
             except KeyError:
                 callers = 'Pisces-multi'
-            
+
             gene = csq[csqIndex.index('SYMBOL')]
             clinical = csq[csqIndex.index('CLIN_SIG')] #split("|")[58]
             existing = csq[csqIndex.index('Existing_variation')].split('&')
