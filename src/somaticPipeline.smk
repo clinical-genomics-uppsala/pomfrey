@@ -5,11 +5,6 @@ rule all:
             sample=config["samples"],
             seqID=config["seqID"]["sequencerun"],
         ),
-        # expand(
-        #     "Results/{sample}_{seqID}/Reports/{sample}_{seqID}_MultiQC.html",
-        #     sample=config["samples"],
-        #     seqID=config["seqID"]["sequencerun"],
-        # ),
         expand(
             "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
             sample=config["samples"],
@@ -56,8 +51,6 @@ rule all:
 
 
 wildcard_constraints:
-    # sample = "[a-zA-Z0-9-_\.]+",
-    # support = "3", #"\.[0-9]+\."
     seqID=config["seqID"]["sequencerun"],
 
 

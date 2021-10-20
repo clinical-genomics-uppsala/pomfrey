@@ -19,7 +19,7 @@ rule fixAF:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/fixAF/{method}/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/fix_af.py {input.vcf} {output}) &> {log}"

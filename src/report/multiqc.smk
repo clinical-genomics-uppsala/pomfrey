@@ -39,7 +39,7 @@ rule multiqcBatch:
         output_name="{seqID}_MultiQC.html",
     log:
         "logs/report/multiqc/{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["multiqc"]
     shell:
         "( multiqc {params.extra} --force -o {params.output_dir} -n {params.output_name} {input} ) &> {log}"

@@ -14,7 +14,7 @@ rule bwa_mem:
         extra=r"-R '@RG\tID:{sample}\tSM:{sample}'",
         sort_order="coordinate",  # Can be 'queryname' or 'coordinate'.
     threads: 10
-    singularity:
+    container:
         config["singularitys"]["bwa"]  #bwa 0.7.17, samtools 1.9, picard 2.20.11
     shell:
         "(bwa mem -t {threads} {params.extra} {params.index} {input.reads} | samtools sort -o {output} - ) &> {log}"
@@ -27,7 +27,7 @@ rule samtools_index:
         "data_processing/{sample}_{seqID}/{sample}_{seqID}.bam.bai",
     log:
         "logs/map/samtools_index/{sample}_{seqID}.log",  # optional params string
-    singularity:
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(samtools index {input} {output}) &> {log}"

@@ -38,7 +38,7 @@ rule pindel:
         B=60,
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel.log",
-    singularity:
+    container:
         config["singularitys"]["pindel"]
     threads: 5
     shell:
@@ -69,7 +69,7 @@ rule pindel2vcf:
         he=0.01,  # Hetrozygot call to be included in QCI
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel2vcf.log",
-    singularity:
+    container:
         config["singularitys"]["pindel"]
     threads: 1
     shell:
@@ -86,7 +86,7 @@ rule fixContigPindel:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.noDP.vcf"),
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.fixContig.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk UpdateVcfSequenceDictionary -I {input.vcf} -SD {input.fasta} -O {output}) &> {log}"
@@ -101,7 +101,7 @@ rule fixPindelDPoAF:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/{sample}_{seqID}.fixDP.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/fix_pindelDPoAF.py {input} {output}) &> {log}"
@@ -121,7 +121,7 @@ rule annotatePindel:
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.ann.log",
     threads: 8
-    singularity:
+    container:
         config["singularitys"]["vep"]
     shell:
         "(if [[ $(cat {input.vcf} | grep -v '^#' | wc -l) -eq 0 ]]; then mv {input.vcf} {output}; else "
@@ -138,7 +138,7 @@ rule filterPindel:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/pindel.{sample}_{seqID}.filt.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
@@ -152,7 +152,7 @@ rule bgzipPindel:
         "variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz.tbi",
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.bgzip-index.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "( bgzip {input} && tabix {input}.gz ) &> {log}"

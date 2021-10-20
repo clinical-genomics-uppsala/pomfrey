@@ -13,7 +13,7 @@ rule collectReadCounts:
         mergingRule="OVERLAPPING_ONLY",
     log:
         "logs/CNV/{sample}_{seqID}.collectReadCounts.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} "
@@ -29,7 +29,7 @@ rule denoiseReadCounts:
         denoisedCopyRatio="CNV/{sample}_{seqID}/{sample}_{seqID}_clean.denoisedCR.tsv",
     log:
         "logs/CNV/{sample}_{seqID}-denoise.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} --count-panel-of-normals {input.hdf5PoN} "
@@ -46,7 +46,7 @@ rule collectAllelicCounts:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.allelicCounts.tsv",
     log:
         "logs/CNV/{sample}_{seqID}_allelicCounts.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} -I {input.bam} -R {input.ref} "
@@ -71,7 +71,7 @@ rule modelSegments:
         outPrefix="{sample}_{seqID}_clean",
     log:
         "logs/CNV/{sample}_{seqID}_modelSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' ModelSegments --denoised-copy-ratios {input.denoisedCopyRatio} "
@@ -85,7 +85,7 @@ rule callCopyRatioSegments:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg",
     log:
         "logs/CNV/{sample}_{seqID}_calledCRSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk CallCopyRatioSegments --input {input} --output {output} ) &> {log}"
@@ -105,7 +105,7 @@ rule plotModeledSegments:
         pointSize=2.0,
     log:
         "logs/CNV/{sample}_{seqID}_plotSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} --allelic-counts {input.allelicCounts} "

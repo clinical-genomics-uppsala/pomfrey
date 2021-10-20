@@ -1,6 +1,3 @@
-# localrules: fixoutput
-
-
 rule cartool:
     input:
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",
@@ -18,7 +15,7 @@ rule cartool:
         extra="-k",  #k = combine, p= mapQ
     log:
         "logs/qc/CARTool/{sample}_{seqID}.cartool.log",
-    singularity:
+    container:
         config["singularitys"]["cartool"]
     shell:  #Need to fix -o so no space is needed.
         "( python3.6 /opt/CARtool/ProgramLancher.py -a {input.bed} -b {input.bam} -c {params.coverage} -e {params.user} "

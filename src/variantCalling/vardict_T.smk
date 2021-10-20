@@ -12,7 +12,7 @@ rule vardict:
     log:
         "logs/variantCalling/vardict/{sample}_{seqID}.log",
     threads: 5
-    singularity:
+    container:
         config["singularitys"]["vardict"]
     shell:
         "(vardict-java -G {input.ref} -f {params.af} -I 200 -th {threads} -N '{wildcards.sample}' -z -c 1 -S 2 -E 3 "

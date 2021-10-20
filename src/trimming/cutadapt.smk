@@ -20,7 +20,7 @@ rule cutadapt:
     log:
         "logs/trim/cutadapt/{sample}_{seqID}.log",
     threads: 10
-    singularity:
+    container:
         config["singularitys"]["cutadapt"]
     shell:
         "(cutadapt {params.adapters_r1} {params.adapters_r2} {params.others} -o {output.fastq1} -p {output.fastq2} "

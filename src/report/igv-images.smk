@@ -8,7 +8,7 @@ rule mergeSNVPindel:
         "-a -D -O v",  #Allow overlap, Remove duplicates, output format vcf
     log:
         "logs/report/{sample}_{seqID}.mergeVcf.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat {params} -o {output} {input.snv} {input.pindel} ) &> {log}"
@@ -29,7 +29,7 @@ rule makePassVCF:
         "logs/report/{sample}_{seqID}.PASS.vcf.log",
     wildcard_constraints:
         sample="(?!HD829).*",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
@@ -46,7 +46,7 @@ rule appendPindeltoPASS:
         "logs/report/{sample}_{seqID}.pindel.log",
     wildcard_constraints:
         sample="(?!HD829).*",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(zcat {input.pindel} | grep -v '^#' | grep PASS >> {input.PASS} || true && touch {output} ) &> {log}"
@@ -72,7 +72,7 @@ rule createBatFile:
         "logs/report/{sample}_{seqID}-makeBat.log",
     wildcard_constraints:
         sample="(?!HD829).*",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
@@ -89,7 +89,7 @@ rule igv:
     wildcard_constraints:
         sample="(?!HD829).*",
     threads: 2
-    singularity:
+    container:
         config["singularitys"]["igv"]
     shell:
         "(xvfb-run --server-args='-screen 0 3200x2400x24' --auto-servernum --server-num=1 igv.sh -b {input.bat} ) &> {log}"

@@ -8,7 +8,7 @@ rule fastqcR1:
         outdir="qc/{sample}_{seqID}/",
     log:
         "logs/qc/fastqc/{sample}_{seqID}_R1_trimmed.log",
-    singularity:
+    container:
         config["singularitys"]["fastqc"]
     shell:
         "(fastqc --quiet --outdir {params.outdir} {input}) &> {log}"

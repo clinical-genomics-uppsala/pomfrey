@@ -41,7 +41,7 @@ rule Split_bam:
         bai=temp("variantCalls/callers/mutect2/infiles/{sample}_{seqID}.{chr}.bam.bai"),
     log:
         "logs/variantCalling/mutect2/split_bam_{sample}_{seqID}-{chr}.log",
-    singularity:
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(samtools view -b {input.bam} {wildcards.chr} > {output.bam} && samtools index {output.bam}) &> {log}"
@@ -71,7 +71,7 @@ rule Mutect2:
         vcf=temp("variantCalls/callers/mutect2/perChr/{sample}_{seqID}.{chr}.mutect2.unfilt.vcf.gz"),
     log:
         "logs/variantCalling/mutect2/mutect2_{sample}_{seqID}.{chr}.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' Mutect2 -R {input.fasta} -I {input.bam} -L {input.bed} --bam-output {output.bam} "
@@ -89,7 +89,7 @@ rule merge_vcf:
         temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.vcf"),
     log:
         "logs/variantCalling/mutect2/merge_vcf_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat -o {output} -O v {input} ) &> {log}"
@@ -108,7 +108,7 @@ rule merge_stats:
         lambda wildcards, input: " -stats ".join(input.stats),
     log:
         "logs/variantCalling/mutec2/merge_stats_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' MergeMutectStats -O {output} -stats {params} ) &> {log}"
@@ -123,7 +123,7 @@ rule filterMutect2:
         temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf"),
     log:
         "logs/variantCalling/mutect2/filter_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
         "(gatk --java-options '-Xmx4g' FilterMutectCalls --max-alt-allele-count 3 --max-events-in-region 8 -R {input.fasta} "
@@ -151,7 +151,7 @@ rule hardFilterMutect2:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/mutect2/hardFilter_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
@@ -169,7 +169,7 @@ rule merge_bam:
         bai="Results/{sample}_{seqID}/Data/{sample}_{seqID}.indel.bam.bai",
     log:
         "logs/variantCalling/mutect2/merge_bam_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(samtools merge {output.bam} {input.bams} && samtools index {output.bam}) &> {log}"

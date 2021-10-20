@@ -11,7 +11,7 @@ rule samtools_stats:
         extra="-t " + config["bed"]["bedfile"],
     log:
         "logs/qc/samtools_stats/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(samtools stats {params.extra} {input} > {output} ) &> {log}"
@@ -25,7 +25,7 @@ rule picardHsMetrics:
         "qc/{sample}_{seqID}/{sample}_{seqID}.HsMetrics.txt",
     log:
         "logs/qc/picardHsMetrics/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["bwa"]
     shell:
         "(java -Xmx4g -jar /opt/conda/share/picard-2.20.1-0/picard.jar CollectHsMetrics BAIT_INTERVALS={input.intervals} "
@@ -60,7 +60,7 @@ rule getStatsforMqc:
         dir=config["programdir"]["dir"],
     log:
         "logs/qc/{sample}_{seqID}_stats.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/qc/get_stats.py {input.picardDup} {input.picardMet} {input.samtools} "
@@ -81,7 +81,7 @@ rule sortBatchStats:
         cov=config["cartool"]["cov"],
     log:
         "logs/qc/sortBatchStats_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params.dir}/src/qc/sortBatchStats.py {input.batchUnsorted} {input.SampleSheet} {output.batch} "
