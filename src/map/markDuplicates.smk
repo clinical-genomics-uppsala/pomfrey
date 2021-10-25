@@ -9,10 +9,9 @@ rule markDuplicates:
         "logs/map/{sample}_{seqID}-dedup.log",
     threads: 5
     container:
-        config["singularitys"]["bwa"]
+        config["singularitys"]["gatk4"]
     shell:
-        "(java -Xmx4g -jar /opt/conda/share/picard-2.20.1-0/picard.jar MarkDuplicates INPUT={input.bam} OUTPUT={output.bam} "
-        "METRICS_FILE={output.metric}) &> {log}"
+        "(gatk MarkDuplicates -INPUT {input.bam} -OUTPUT {output.bam} -METRICS_FILE {output.metric}) &> {log} "
 
 
 rule samtools_index_dedup:
@@ -21,7 +20,7 @@ rule samtools_index_dedup:
     output:
         "Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam.bai",
     log:
-        "logs/map/samtools_index/{sample}_{seqID}-dedup.log",  # optional params string
+        "logs/map/samtools_index/{sample}_{seqID}-dedup.log",
     container:
         config["singularitys"]["bwa"]
     shell:
