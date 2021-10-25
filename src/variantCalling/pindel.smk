@@ -120,7 +120,7 @@ rule annotatePindel:
         "--pubmed --variant_class ",
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.ann.log",
-    threads: 8
+    threads: 10
     container:
         config["singularitys"]["vep"]
     shell:

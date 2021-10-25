@@ -26,10 +26,10 @@ rule picardHsMetrics:
     log:
         "logs/qc/picardHsMetrics/{sample}_{seqID}.log",
     container:
-        config["singularitys"]["bwa"]
+        config["singularitys"]["gatk4"]
     shell:
-        "(java -Xmx4g -jar /opt/conda/share/picard-2.20.1-0/picard.jar CollectHsMetrics BAIT_INTERVALS={input.intervals} "
-        "TARGET_INTERVALS={input.intervals} INPUT={input.bam} OUTPUT={output}) &> {log}"
+        "(gatk CollectHsMetrics -BAIT_INTERVALS {input.intervals} -TARGET_INTERVALS {input.intervals} "
+        "-INPUT {input.bam} -OUTPUT {output}) &> {log}"
 
 
 rule touchBatch:
