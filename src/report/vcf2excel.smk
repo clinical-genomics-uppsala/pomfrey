@@ -11,10 +11,8 @@ rule fixCoverageHotspot:
     log:
         "logs/report/{sample}_{seqID}.covShortHotspot.log",
     shell:
-        """ ( while read line;
-                do chr=$(echo $line | awk '{{print $1}}');pos=$(echo $line | awk '{{print $2}}')
-                cat {input.tsv} | grep ${{chr}} | grep ${{pos}} >>{output}
-             done < {input.bed} ) &> {log} """
+        """ ( while read line; do chr=$(echo $line | awk '{{print $1}}'); pos=$(echo $line | awk '{{print $2}}');
+        cat {input.tsv} | grep ${{chr}} | grep ${{pos}} >>{output} ; done < {input.bed} ) &> {log} """
 
 
 rule vcf2excel:
@@ -45,11 +43,11 @@ rule vcf2excel:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
     wildcard_constraints:
         sample="(?!HD829).*",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {input.cart} \
-                    {output} {params.configfile}) &> {log}"
+        "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {input.cart} "
+        "{output} {params.configfile}) &> {log}"
 
 
 rule vcf2excelHD829:
@@ -74,8 +72,8 @@ rule vcf2excelHD829:
         sample="(HD829).*",
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/report/vcf2excelHD829.py {input.snv} {input.indel} {input.cart} {output} \
-                    {params.configfile}) &> {log}"
+        "(python3.6 {params.dir}/src/report/vcf2excelHD829.py {input.snv} {input.indel} {input.cart} {output} "
+        "{params.configfile}) &> {log}"

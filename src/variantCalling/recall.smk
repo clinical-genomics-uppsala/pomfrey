@@ -18,10 +18,11 @@ rule recall:
         order=",".join([s for s in config["methods"]]),
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["recall"]
     shell:  ##Remove filtered?? if so --nofiltered
-        "(bcbio-variation-recall ensemble -n {params.support} --names {params.order} {output.vcf} {input.ref} {input.vcfs}) &> {log}"
+        "(bcbio-variation-recall ensemble -n {params.support} --names {params.order} {output.vcf} {input.ref} "
+        "{input.vcfs}) &> {log}"
 
 
 rule sort_recall:
@@ -33,12 +34,12 @@ rule sort_recall:
         tbi=temp("variantCalls/recall/{sample}_{seqID}.notMulti.all.vcf.gz.tbi"),
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.sort.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
-        "( tabix -f {input} && \
-                bcftools sort -o {output.vcf} -O z {input} && \
-                tabix {output.vcf} ) &> {log}"
+        "( tabix -f {input} && "
+        "bcftools sort -o {output.vcf} -O z {input} && "
+        "tabix {output.vcf} ) &> {log}"
 
 
 rule filter_recall:
@@ -51,7 +52,7 @@ rule filter_recall:
         indelArte=config["bed"]["indelartefact"],
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.filter_recall.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3 {params.dir}/src/variantCalling/filter_recall.py {input} {output} {params.indelArte}) &> {log}"
@@ -64,7 +65,7 @@ rule index_filterRecall:
         tbi="variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz.tbi",
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.index_recallFilter.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "( tabix {input} ) &> {log}"
@@ -89,10 +90,10 @@ rule sort_multiPASS:
         "variantCalls/recall/{sample}_{seqID}.multiPASS.vcf",
     output:
         vcf="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz",
-        tbi="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz.tbi",  
+        tbi="variantCalls/recall/{sample}_{seqID}.multiPASS.sort.vcf.gz.tbi",
     log:
         "logs/recall/{sample}_{seqID}.multiPASS.sort.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools sort -o {output.vcf} -O z {input} && tabix {output.vcf}) &> {log}"
@@ -109,7 +110,7 @@ rule concatMulti:
         "--allow-overlaps -d all -O z",
     log:
         "logs/recall/{sample}_{seqID}.concat.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat {params} -o {output} {input.vcf} {input.multi}) &> {log}"

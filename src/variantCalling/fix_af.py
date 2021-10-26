@@ -31,7 +31,7 @@ for record in vcf_in.fetch():
                 af.append(item/sum(ad))
     if method == "pisces":
         af = record.samples[sample].get("VF")
-    if method == "mutect2":
+    if method == "mutect2" or method == "vardict":
         af = record.samples[0].get("AF")
     if method == "snver":
         dp = record.info["DP"]

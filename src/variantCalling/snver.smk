@@ -13,13 +13,13 @@ rule snver:
     output:
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.raw.vcf"),
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.filter.vcf"),
-        temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.raw.vcf"),  
+        temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.raw.vcf"),
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.indel.filter.vcf"),
     params:
         outfolder="variantCalls/callers/snver/{sample}_{seqID}.snver",
     log:
         "logs/variantCalling/snver/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["snver"]
     shell:
         "(snver -i {input.bam} -r {input.ref} -l {input.bed} -o {params.outfolder}) &> {log}"
@@ -33,7 +33,7 @@ rule indexSnver:
         "variantCalls/callers/snver/{sample}_{seqID}.snver.filter.vcf.gz",
     log:
         "logs/variantCalling/snver/{sample}_{seqID}.index.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bgzip {input} && tabix {input}.gz) &> {log}"
@@ -47,7 +47,7 @@ rule indexSnverIndel:
         "variantCalls/callers/snver/{sample}_{seqID}.snver.indel.filter.vcf.gz",
     log:
         "logs/variantCalling/snver/{sample}_{seqID}.index.indel.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bgzip {input} && tabix {input}.gz) &> {log}"
@@ -63,7 +63,7 @@ rule concatSnver:
         temp("variantCalls/callers/snver/{sample}_{seqID}.snver.weirdAF.vcf"),
     log:
         "logs/variantCalling/snver/concat_{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "(bcftools concat -a -Ou {input.snver} {input.indel} | bcftools sort -Ov -o {output} -) &> {log}"

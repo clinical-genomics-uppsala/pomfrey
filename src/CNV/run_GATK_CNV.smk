@@ -13,11 +13,11 @@ rule collectReadCounts:
         mergingRule="OVERLAPPING_ONLY",
     log:
         "logs/CNV/{sample}_{seqID}.collectReadCounts.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} \
-                  --interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CollectReadCounts -I {input.bam} -L {input.interval} "
+        "--interval-merging-rule {params.mergingRule} -O {output} ) &> {log}"
 
 
 rule denoiseReadCounts:
@@ -29,13 +29,11 @@ rule denoiseReadCounts:
         denoisedCopyRatio="CNV/{sample}_{seqID}/{sample}_{seqID}_clean.denoisedCR.tsv",
     log:
         "logs/CNV/{sample}_{seqID}-denoise.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} \
-                --count-panel-of-normals {input.hdf5PoN} \
-                --standardized-copy-ratios {output.stdCopyRatio} \
-                --denoised-copy-ratios {output.denoisedCopyRatio} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' DenoiseReadCounts -I {input.hdf5Tumor} --count-panel-of-normals {input.hdf5PoN} "
+        "--standardized-copy-ratios {output.stdCopyRatio} --denoised-copy-ratios {output.denoisedCopyRatio} ) &> {log}"
 
 
 rule collectAllelicCounts:
@@ -48,12 +46,11 @@ rule collectAllelicCounts:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.allelicCounts.tsv",
     log:
         "logs/CNV/{sample}_{seqID}_allelicCounts.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} \
-                -I {input.bam} -R {input.ref} \
-                -O {output} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' CollectAllelicCounts -L {input.intervalList} -I {input.bam} -R {input.ref} "
+        "-O {output} ) &> {log}"
 
 
 rule modelSegments:
@@ -74,13 +71,11 @@ rule modelSegments:
         outPrefix="{sample}_{seqID}_clean",
     log:
         "logs/CNV/{sample}_{seqID}_modelSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk --java-options '-Xmx4g' ModelSegments \
-                --denoised-copy-ratios {input.denoisedCopyRatio} \
-                --allelic-counts {input.allelicCounts} \
-                --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log}"
+        "(gatk --java-options '-Xmx4g' ModelSegments --denoised-copy-ratios {input.denoisedCopyRatio} "
+        "--allelic-counts {input.allelicCounts} --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log}"
 
 
 rule callCopyRatioSegments:
@@ -90,11 +85,10 @@ rule callCopyRatioSegments:
         "CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg",
     log:
         "logs/CNV/{sample}_{seqID}_calledCRSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk CallCopyRatioSegments --input {input} \
-                --output {output} ) &> {log}"
+        "(gatk CallCopyRatioSegments --input {input} --output {output} ) &> {log}"
 
 
 rule plotModeledSegments:
@@ -106,19 +100,17 @@ rule plotModeledSegments:
     output:
         "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
     params:
-        outDir="CNV/",  
+        outDir="CNV/",
         outPrefix="{sample}_{seqID}_clean.calledCNVs",  #--minimum-contig-length 46709983
         pointSize=2.0,
     log:
         "logs/CNV/{sample}_{seqID}_plotSegments.log",
-    singularity:
+    container:
         config["singularitys"]["gatk4"]
     shell:
-        "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} \
-                --allelic-counts {input.allelicCounts} --segments {input.segments} \
-                --sequence-dictionary {input.refDict} \
-                --point-size-allele-fraction {params.pointSize} --point-size-copy-ratio {params.pointSize} \
-                --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log} "
+        "(gatk PlotModeledSegments --denoised-copy-ratios {input.denoisedCopyRatio} --allelic-counts {input.allelicCounts} "
+        "--segments {input.segments} --sequence-dictionary {input.refDict} --point-size-allele-fraction {params.pointSize} "
+        "--point-size-copy-ratio {params.pointSize} --output {params.outDir} --output-prefix {params.outPrefix} ) &> {log} "
 
 
 #
