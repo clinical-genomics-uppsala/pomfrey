@@ -347,7 +347,7 @@ worksheetIntron.write('A1', 'Intron, non-coding and synonymous variants', headin
 worksheetIntron.write_row(1, 0, emptyList, lineFormat)
 worksheetIntron.write('A3', 'Sample: '+str(sample))
 
-worksheetIntron.write('A6', 'The following filters were applied: ')
+worksheetIntron.write('A6', 'The following filters for the introns were applied: ')
 worksheetIntron.write('B7', 'Coverage >= 100x')
 worksheetIntron.write('B8', 'PopAF <= 2 %')
 worksheetIntron.write('B9', 'Allele Frequency >= 20%')
