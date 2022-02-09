@@ -7,7 +7,7 @@ rule freebayes:
         temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.unsort.vcf"),  # either .vcf or .bcf
     log:
         "logs/variantCalling/freebayes/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["freebayes"]
     params:
         extra=(
@@ -24,8 +24,8 @@ rule sortFreebayes:
     input:
         "variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.unsort.vcf",
     output:
-        temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.weirdAF.vcf"),
-    singularity:
+        temp("variantCalls/callers/freebayes/{sample}_{seqID}.freebayes.vcf"),
+    container:
         config["singularitys"]["bcftools"]
     log:
         "logs/variantCalling/freebayes/{sample}_{seqID}.sort.log",

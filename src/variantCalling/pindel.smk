@@ -38,11 +38,12 @@ rule pindel:
         B=60,
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel.log",
-    singularity:
+    container:
         config["singularitys"]["pindel"]
-    threads: 4
+    threads: 5
     shell:
-        " (pindel -f {input.ref} -i {input.bamconfig} -T {threads} -x {params.x} -B {params.B} -j {input.bed} -o variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} ) &> {log}"
+        " (pindel -f {input.ref} -i {input.bamconfig} -T {threads} -x {params.x} -B {params.B} -j {input.bed} "
+        "-o variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} ) &> {log}"
 
 
 rule pindel2vcf:
@@ -60,40 +61,35 @@ rule pindel2vcf:
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf"),
     params:
-        e=10,  #min supporting reads 35
-        mc=10,  #min coverage
-        minsize=5,  #min size of reported 5
+        e=10,  # min supporting reads 35
+        mc=10,  # min coverage
+        minsize=5,  # min size of reported 5
         refname="hg19",
-        refdate=000000,  #Can I add seqID instead? config["seqID"]["sequencerun"]
-	he=0.01 #Hetrozygot call to be included in QCI
+        refdate=000000,  # Can I add seqID instead? config["seqID"]["sequencerun"]
+        he=0.01,  # Hetrozygot call to be included in QCI
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.pindel2vcf.log",
-    singularity:
+    container:
         config["singularitys"]["pindel"]
     threads: 1
     shell:
-        "(pindel2vcf -P variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} -r {input.ref} -R {params.refname} -d {params.refdate} -v {output} -he {params.he} -e {params.e} -mc {params.mc} -G -is {params.minsize} ) &> {log}"
+        "(pindel2vcf -P variantCalls/pindel/{wildcards.sample}_{wildcards.seqID}/{wildcards.sample}_{wildcards.seqID} "
+        "-r {input.ref} -R {params.refname} -d {params.refdate} -v {output} -he {params.he} -e {params.e} -mc {params.mc} "
+        "-G -is {params.minsize} ) &> {log}"
 
 
 rule fixContigPindel:
     input:
-        "variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf",
+        vcf="variantCalls/pindel/{sample}_{seqID}.pindel.noDP.noContig.vcf",
+        fasta=config["reference"]["ref"],
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.noDP.vcf"),
-    params:  ## awk '{printf("##contig=<ID=%s,length=%d>\\n",$1,$2);}' ref.fai
-        '"##contig=<ID=chr1,length=249250621>\\n##contig=<ID=chr2,length=243199373>\\n##contig=<ID=chr3,length=198022430> \
-        \\n##contig=<ID=chr4,length=191154276>\\n##contig=<ID=chr5,length=180915260>\\n##contig=<ID=chr6,length=171115067> \
-        \\n##contig=<ID=chr7,length=159138663>\\n##contig=<ID=chr8,length=146364022>\\n##contig=<ID=chr9,length=141213431> \
-        \\n##contig=<ID=chr10,length=135534747>\\n##contig=<ID=chr11,length=135006516>\\n##contig=<ID=chr12,length=133851895> \
-        \\n##contig=<ID=chr13,length=115169878>\\n##contig=<ID=chr14,length=107349540>\\n##contig=<ID=chr15,length=102531392> \
-        \\n##contig=<ID=chr16,length=90354753>\\n##contig=<ID=chr17,length=81195210>\\n##contig=<ID=chr18,length=78077248> \
-        \\n##contig=<ID=chr19,length=59128983>\\n##contig=<ID=chr20,length=63025520>\\n##contig=<ID=chr21,length=48129895> \
-        \\n##contig=<ID=chr22,length=51304566>\\n##contig=<ID=chrX,length=155270560>\\n##contig=<ID=chrY,length=59373566> \
-        \\n##contig=<ID=chrM,length=16571>\\n"',
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.fixContig.log",
+    container:
+        config["singularitys"]["gatk4"]
     shell:
-        """(cat {input} | grep -v "^##contig" | awk '/^#CHROM/ {{ printf({params});}} {{print;}}' > {output} )&> {log}  """
+        "(gatk UpdateVcfSequenceDictionary -I {input.vcf} -SD {input.fasta} -O {output}) &> {log}"
 
 
 rule fixPindelDPoAF:
@@ -105,7 +101,7 @@ rule fixPindelDPoAF:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/{sample}_{seqID}.fixDP.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/fix_pindelDPoAF.py {input} {output}) &> {log}"
@@ -119,21 +115,18 @@ rule annotatePindel:
     output:
         temp("variantCalls/pindel/{sample}_{seqID}.pindel.ann.vcf"),
     params:
-        "--check_existing --pick --sift b --polyphen b --ccds --uniprot --hgvs --symbol --numbers --domains \
-        --regulatory --canonical --protein --biotype --uniprot --tsl --appris --gene_phenotype --af --af_1kg --af_gnomad \
-        --max_af --pubmed --variant_class ",
+        "--check_existing --pick --sift b --polyphen b --ccds --uniprot --hgvs --symbol --numbers --domains --regulatory "
+        "--canonical --protein --biotype --uniprot --tsl --appris --gene_phenotype --af --af_1kg --af_gnomad --max_af "
+        "--pubmed --variant_class ",
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.ann.log",
-    threads: 8
-    singularity:
+    threads: 10
+    container:
         config["singularitys"]["vep"]
     shell:
-        """(if [[ $(cat {input.vcf} | grep -v '^#' | wc -l) -eq 0 ]];
-                then
-                    mv {input.vcf} {output}
-            else
-                vep --vcf --no_stats -o {output} -i {input.vcf} --dir_cache {input.cache} --fork {threads} --cache --refseq \
-                --offline --fasta {input.fasta} {params} ; fi) &> {log}"""
+        "(if [[ $(cat {input.vcf} | grep -v '^#' | wc -l) -eq 0 ]]; then mv {input.vcf} {output}; else "
+        "vep --vcf --no_stats -o {output} -i {input.vcf} --dir_cache {input.cache} --fork {threads} --cache --refseq "
+        "--offline --fasta {input.fasta} {params} ; fi) &> {log}"
 
 
 rule filterPindel:
@@ -145,7 +138,7 @@ rule filterPindel:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/pindel.{sample}_{seqID}.filt.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
         "(python3.6 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
@@ -159,7 +152,7 @@ rule bgzipPindel:
         "variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz.tbi",
     log:
         "logs/variantCalling/pindel/{sample}_{seqID}.bgzip-index.log",
-    singularity:
+    container:
         config["singularitys"]["bcftools"]
     shell:
         "( bgzip {input} && tabix {input}.gz ) &> {log}"

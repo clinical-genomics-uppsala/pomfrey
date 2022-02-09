@@ -47,12 +47,12 @@ samDict = {item[0].strip(':'): item[1] for item in listOfList}
 avgCovCmd = 'grep "Mean Coverage Depth:" '+cartoolLog + ' |cut -f2 -d"," | cut -f1 -d" " '
 avgCov = subprocess.run(avgCovCmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8')
 
-breadth500Cmd = 'grep "Mean Coverage Breadth:" '+cartoolLog + ' | cut -f3 -d"," '
-breadth500 = subprocess.run(breadth500Cmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8')
+breadthMedCmd = 'grep "Mean Coverage Breadth:" '+cartoolLog + ' | cut -f3 -d"," '
+breadthMed = subprocess.run(breadthMedCmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8')
 
-header = ['Sample', 'Tot seq', 'Reads mapped', 'Avg Coverage', 'Breadth 500x', 'Reads paired [%]', 'Insert size',
+header = ['Sample', 'Tot seq', 'Reads mapped', 'Avg Coverage', 'Breadth MEDx', 'Reads paired [%]', 'Insert size',
           'Insert size s.d.', 'Average Quality', 'Duplicates [%]', 'Target bases 50x', 'Target bases 100x', 'Bases on target']
-line = [sample, samDict['raw total sequences'], samDict['reads mapped'], avgCov.strip(), breadth500.strip(),
+line = [sample, samDict['raw total sequences'], samDict['reads mapped'], avgCov.strip(), breadthMed.strip(),
         samDict['percentage of properly paired reads (%)'], samDict['insert size average'],
         samDict['insert size standard deviation'], samDict['average quality'], dupliPerc, metricsDict['PCT_TARGET_BASES_50X'],
         metricsDict['PCT_TARGET_BASES_100X'], metricsDict['PCT_SELECTED_BASES']]

@@ -14,10 +14,16 @@ new_header = vcf_in.header
 
 vcf_out = VariantFile(sys.argv[6], 'w', header=new_header)
 
+for x in vcf_in.header.records:
+    if 'CSQ' in str(x):
+        csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
 
 # SNVs
 for record in vcf_in.fetch():
     synoCosmicN = 0
+    spliceVariant = False
+    csq = record.info["CSQ"][0].split("|")
+    consequence = csq[csqIndex.index('Consequence')]
     if record.filter.keys() == ["Syno"]:  # If only syno! No popAF.    any(x in "Syno" for x in record.filter.keys()):
         csq = record.info["CSQ"][0]
         synoCosmicVepList = [cosmic for cosmic in csq.split("|")[17].split(
@@ -29,8 +35,10 @@ for record in vcf_in.fetch():
                 if len(synoCosmicNew) == 0:
                     synoCosmicNew = 0
                 synoCosmicN += int(synoCosmicNew)
+        if 'splice' in consequence:
+            spliceVariant = True
 
-    if record.filter.keys() == ["PASS"] or synoCosmicN != 0:
+    if record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant:
         # if len(record.ref) > len(record.alts[0]): Deletion but need to remove first base as well
         #     record.pos = record.pos-1
         if record.info["AF"][0] >= 0.03:  # Change for pindel, get all pindels

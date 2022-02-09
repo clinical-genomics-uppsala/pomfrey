@@ -6,24 +6,25 @@ include: "freebayes.smk"
 include: "vardict_T.smk"
 include: "pisces.smk"
 include: "mutect2.smk"
+include: "normalize.smk"
 
 
 rule fixAF:
     input:
-        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
+        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz.tbi",
     output:
-        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
+        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf"),
     params:
         config["programdir"]["dir"],
     log:
         "logs/variantCalling/fixAF/{method}/{sample}_{seqID}.log",
-    singularity:
+    container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params}/src/variantCalling/fix_af.py {input} {output}) &> {log}"
+        "(python3.6 {params}/src/variantCalling/fix_af.py {input.vcf} {output}) &> {log}"
 
 
 include: "bgzips.smk"
-include: "normalize.smk"
 include: "recall.smk"
 include: "vep.smk"
