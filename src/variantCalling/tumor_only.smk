@@ -6,15 +6,13 @@ include: "freebayes.smk"
 include: "vardict_T.smk"
 include: "pisces.smk"
 include: "mutect2.smk"
-include: "normalize.smk"
 
 
 rule fixAF:
     input:
-        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
-        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz.tbi",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf",
     output:
-        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf"),
+        temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
     params:
         config["programdir"]["dir"],
     log:
@@ -25,6 +23,6 @@ rule fixAF:
         "(python3.6 {params}/src/variantCalling/fix_af.py {input.vcf} {output}) &> {log}"
 
 
-include: "bgzips.smk"
+include: "normalize.smk"
 include: "recall.smk"
 include: "vep.smk"

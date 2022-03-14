@@ -20,7 +20,7 @@ rule normalizeAll:
         vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.decomposed.vcf.gz",
         fasta=config["reference"]["ref"],
     output:
-        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
+        "variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz",
     log:
         "logs/variantCalling/vt/{sample}_{seqID}.{method}.normalized.log",
     container:
@@ -31,9 +31,9 @@ rule normalizeAll:
 
 rule indexNormalized:
     input:
-        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz",
     output:
-        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.weirdAF.vcf.gz.tbi",
+        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.normalized.vcf.gz.tbi",
     log:
         "logs/variantCalling/vt/{sample}_{seqID}.{method}.index.log",
     container:
