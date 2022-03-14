@@ -6,11 +6,12 @@ include: "freebayes.smk"
 include: "vardict_T.smk"
 include: "pisces.smk"
 include: "mutect2.smk"
-
+include: "bgzips.smk"
 
 rule fixAF:
     input:
-        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf",
+        vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz",
+        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz.tbi",
     output:
         temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
     params:
