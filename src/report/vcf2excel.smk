@@ -22,6 +22,7 @@ rule vcf2excel:
         gatkSeg="CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg",
         png="CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
         cart="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageShortList.csv",
+        mosdepth_summary="qc/mosdepth/{sample}_{seqID}/{sample}_{seqID}.mosdepth.summary.txt",
         # In configfile
         bed=config["bed"]["pindel"],
         cnvbed=config["CNV"]["bedPoN"],
@@ -46,7 +47,7 @@ rule vcf2excel:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {input.cart} "
+        "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {input.cart} {input.mosdepth_summary} "
         "{output} {params.configfile}) &> {log}"
 
 

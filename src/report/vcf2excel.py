@@ -13,8 +13,9 @@ vcf_indel = VariantFile(sys.argv[2])
 cnv_file = sys.argv[3]
 cnv_image_path = sys.argv[4]
 cartool = sys.argv[5]  # sys.argv[6]
-output = sys.argv[6]  # sys.argv[19]
-configfile = sys.argv[7]
+mosdepth_summary = sys.argv[6]
+output = sys.argv[7]  # sys.argv[19]
+configfile = sys.argv[8]
 
 with open(configfile, 'r') as file:
     config_list = yaml.load(file, Loader=yaml.FullLoader)
@@ -912,6 +913,12 @@ worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicat
                                 str(minCov)+'x', str(medCov)+'x', str(maxCov)+'x'], tableHeadFormat)
 worksheetOver.write_row(20, 0, [runID, sample, avgCov, str(round(float(duplicateLevel)*100, 2))]+breadth.split(','))
 
+cov_chrX_cmd = 'grep "chrX_region" '+mosdepth_summary
+cov_chrX = subprocess.run(cov_chrX_cmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip().split("\t")[3]
+
+cov_chrY_cmd = 'grep "chrY_region" '+mosdepth_summary
+cov_chrY = subprocess.run(cov_chrY_cmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip().split("\t")[3]
+
 if lowPos == 0:  # From Hotspot sheet
     worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
     worksheetOver.write(24, 0, str(lowPos))
@@ -923,11 +930,15 @@ else:
 worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
 worksheetOver.write(27, 0, str(lowRegions))  # From Cov sheet
 
-worksheetOver.write(29, 0, 'Bedfile: '+bedfile)
-worksheetOver.write(30, 0, 'Hotspotlist: '+hotspotFile)
-worksheetOver.write(31, 0, 'Artefact file: '+artefactFile)
-worksheetOver.write(32, 0, 'Germline file: '+germlineFile)
-worksheetOver.write(33, 0, 'Pindel artefact file: '+pindelArtefactFile)
+worksheetOver.write(29, 0, 'Average coverage of region in bedfile: ')
+worksheetOver.write_row(30,0, ['chrX_region', cov_chrX])
+worksheetOver.write_row(31,0, ['chrY_region', cov_chrY])
+
+worksheetOver.write(33, 0, 'Bedfile: '+bedfile)
+worksheetOver.write(34, 0, 'Hotspotlist: '+hotspotFile)
+worksheetOver.write(35, 0, 'Artefact file: '+artefactFile)
+worksheetOver.write(36, 0, 'Germline file: '+germlineFile)
+worksheetOver.write(37, 0, 'Pindel artefact file: '+pindelArtefactFile)
 
 
 ''' Prog Version sheet (8), added last '''
