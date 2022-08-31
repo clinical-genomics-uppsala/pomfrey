@@ -36,6 +36,6 @@ for record in vcf_in.fetch():
         ac = record.info["AC"]
         af = ac/dp
 
-    record.info["AF"] = af
+    record.info["AF"] = tuple(af)
 
     vcf_out.write(record)
