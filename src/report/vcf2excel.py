@@ -8,66 +8,39 @@ import subprocess
 import yaml
 
 # Define sys.argvs
-vcf_snv = VariantFile(sys.argv[1])
-vcf_indel = VariantFile(sys.argv[2])
-cnv_file = sys.argv[3]
-cnv_image_path = sys.argv[4]
-cartool = sys.argv[5]  # sys.argv[6]
-mosdepth_summary = sys.argv[6]
-output = sys.argv[7]  # sys.argv[19]
-configfile = sys.argv[8]
+vcf_snv = VariantFile(snakemake.input.vcf_snv)
+vcf_indel = VariantFile(snakemake.input.vcf_pindel)
 
-with open(configfile, 'r') as file:
-    config_list = yaml.load(file, Loader=yaml.FullLoader)
 
-runID = config_list['seqID']['sequencerun']  # sys.argv[5]
-minCov = int(config_list['cartool']['cov'].split(' ')[0])  # int(sys.argv[7])
-medCov = int(config_list['cartool']['cov'].split(' ')[1])  # int(sys.argv[8])
-maxCov = int(config_list['cartool']['cov'].split(' ')[2])  # int(sys.argv[9])
-bedfile = config_list["bed"]["bedfile"]
-pindelBedfile = config_list["bed"]["pindel"]  # sys.argv[10]
-# sys.argv[11] #bedfile with - annotated as CNV and exon nummers but exon number not really used right now
-cnv_bed_file_path = config_list["CNV"]["bedPoN"]
-chrBandFilePath = config_list["CNV"]["cyto"]  # sys.argv[12]
-hotspotFile = config_list["bed"]["hotspot"]  # sys.argv[13]
-artefactFile = config_list["bed"]["artefact"]  # sys.argv[14]
-pindelArtefactFile = config_list["bed"]["pindelArtefact"]  # sys.argv[15]
-germlineFile = config_list["bed"]["germline"]  # sys.argv[16]
-hematoCountFile = config_list["configCache"]["hemato"]  # sys.argv[17]
-variantLog = config_list["configCache"]["variantlist"]  # sys.argv[18]
-
-sample_purity = 0.8
-
-''' Create execl file and sheets. '''
-workbook = xlsxwriter.Workbook(output)
-worksheetOver = workbook.add_worksheet('Overview')
-worksheetShortList = workbook.add_worksheet('ShortList')
-worksheetSNV = workbook.add_worksheet('SNVs')
-worksheetIndel = workbook.add_worksheet('InDel')  # .... sys.argv[2]
-worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
-worksheetCNV = workbook.add_worksheet('CNV')
-worksheetLowCov = workbook.add_worksheet('Low Coverage')  # ... sys.argv[3]
-worksheetHotspot = workbook.add_worksheet('Hotspot')
-worksheetCov = workbook.add_worksheet('Coverage')
-worksheetQCI = workbook.add_worksheet('QCI')
-worksheetVersions = workbook.add_worksheet('Version')
-# Define formats to be used.
-headingFormat = workbook.add_format({'bold': True, 'font_size': 18})
-lineFormat = workbook.add_format({'top': 1})
-tableHeadFormat = workbook.add_format({'bold': True, 'text_wrap': True})
-textwrapFormat = workbook.add_format({'text_wrap': True})
-italicFormat = workbook.add_format({'italic': True})
-redFormat = workbook.add_format({'font_color': 'red'})
-
-greenFormat = workbook.add_format({'bg_color': '#85e085'})  # , 'font_color': '#b3b3b3'
-orangeFormat = workbook.add_format({'bg_color': '#ffd280'})  # font color gray 70%
-green_italicFormat = workbook.add_format({'bg_color': '#85e085', 'italic': 'True'})  # 'font_color': '#b3b3b3',
-orange_italicFormat = workbook.add_format({'bg_color': '#ffd280', 'italic': 'True'})  # 'font_color': '#b3b3b3',
-
-# Define sample based on annotated vcf
 sample = list(vcf_snv.header.samples)[0]
 today = date.today()
 emptyList = ['', '', '', '', '', '']
+
+sample_purity = 0.8
+
+
+# VEP fileds in list to get index
+def index_vep(variantfile):
+    csqIndex = []
+    for x in variantfile.header.records:
+        if 'CSQ' in str(x):
+            csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
+    return csqIndex
+
+
+# Return matching lines in file
+def extractMatchingLines(expressionMatch, artefactFile, grepvarible):
+    if grepvarible == '':
+        grepvarible = '-wE '
+    cmdArt = 'grep '+grepvarible+' '+str(expressionMatch)+' '+artefactFile
+    matchLines = subprocess.run(cmdArt, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
+    return matchLines
+
+
+minCov = int(snakemake.params.thresholds.split(' ')[0]) # , om mosdepth
+medCov = int(snakemake.params.thresholds.split(' ')[1])
+maxCov = int(snakemake.params.thresholds.split(' ')[2])
+
 
 shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
                   'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
@@ -75,6 +48,19 @@ shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 
                   'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
                   'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
 
+''' Loop through vcf_snv to get snvs and intron '''
+# SNV
+white = []
+green = []
+orange = []
+whiteIGV = []
+underFive = []  # put after green and orange but still white
+underFiveIGV = []  # put after green and orange but still white
+# Reported
+shortListSNV = []  # Reported genes only
+shortListSNVigv = []  # Reported genes only
+greenShortList = []  # Germline in reported genes
+# Intron
 intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
               'NOTCH1': ['chr9', 139388885, 139390523],
@@ -87,14 +73,103 @@ for key in intronDict:
         introns[chr].append(intronDict[key][1:])
     else:
         introns[chr] = [intronDict[key][1:]]
+        
+synoVariants = [['c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr3', '128200782', 'G', 'A'],
+                ['c.981G>A', 'chr3', '128202739', 'C', 'T'], ['c.649C>T', 'chr3', '128204792', 'G', 'A'],
+                ['c.351C>G', 'chr3', '128205090', 'G', 'C'], ['c.375G>A', 'chr17', '7579312', 'C', 'T'],
+                ['c.375G>T', 'chr17', '7579312', 'C', 'A'], ['c.375G>C', 'chr17', '7579312', 'C', 'G'],
+                ['c.672G>A', 'chr17', '7578177', 'C', 'T'], ['c.993G>A', 'chr17', '7576853', 'C', 'T']]
 
-# VEP fields in list to get index
-for x in vcf_snv.header.records:
-    if 'CSQ' in str(x):
-        csqIndex = str(x).split('Format: ')[1].strip().strip('">').split('|')
+synoFound = []
+
+# Intron variants with allel freq over 20 % in specified regions (intronDict)
+for snv in vcf_snv.fetch():
+    csqIndex = index_vep(vcf_snv)
+    synoCosmicN = 0
+    spliceVariant = False
+    csq = record.info["CSQ"][0].split("|")
+    consequence = csq[csqIndex.index('Consequence')]
+
+    # SNV variant
+    if record.filter.keys() == ["Syno"]:  # Only if Syno not and popAF.   any(x in "Syno" for x in record.filter.keys()):
+        synoCosmicVepList = [cosmic for cosmic in csq[csqIndex.index('Existing_variation')].split("&")
+                             if cosmic.startswith('CO')]  # Get all cosmicID in list
+        # COSMIC Hemato
+        if len(synoCosmicVepList) != 0:
+            for synoCosmicId in synoCosmicVepList:
+                import pdb; pdb.set_trace()
+                synoCosmicNew = extractMatchingLines(synoCosmicId, snakemake.input.hemato_count, '-wE').split(" ")[15]
+                if len(synoCosmicNew) == 0:
+                    synoCosmicNew = 0
+                synoCosmicN += int(synoCosmicNew)
+        if 'splice' in consequence:
+            spliceVariant = True
+
+    if record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant:
+
+        if len(record.info["AF"]) == 1:
+            af = record.info["AF"][0]
+        else:
+            print(record.info["AF"])
+            sys.exit()  # Fails if vt decompose didn't work
+
+        if len(record.alts) == 1:
+            alt = record.alts[0]
+        else:
+            print(record.alts)
+            sys.exit()  # Fails if vt decompose didn't work
+
+        if af >= 0.03:
+            try:
+                if record.info["CALLERS"]:
+                    callers = ' & '.join(record.info["CALLERS"])
+            except KeyError:
+                callers = 'Pisces-multi'
+
+            gene = csq[csqIndex.index('SYMBOL')]
+            clinical = csq[csqIndex.index('CLIN_SIG')]  # split("|")[58]
+            existing = csq[csqIndex.index('Existing_variation')].split('&')
+
+            # rs IDs use more than just the first!
+            rsList = [rs for rs in existing if rs.startswith('rs')]
+            if len(rsList) == 0:
+                rs = ''
+            else:
+                rs = ', '.join(rsList)
+                # rs = rsList[0]
+
+            # Total number of cosmic hemato hits on the position. Vep reports all cosmicId for that position.
+            cosmicVepList = [cosmic for cosmic in existing if cosmic.startswith('CO')]
+            if len(cosmicVepList) == 0:
+                cosmicVep = ''
+            else:
+                cosmicVep = ', '.join(cosmicVepList)
+
+            if len(cosmicVepList) == 0:
+                cosmicN = ''
+            else:
+                cosmicN = 0
+                for cosmicId in cosmicVepList:
+                    cmdCosmic = 'grep -w '+cosmicId+' '+hematoCountFile+' | cut -f 16 '
+                    cosmicNew = subprocess.run(cmdCosmic, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
+                    if len(cosmicNew) == 0:
+                        cosmicNew = 0
+                    cosmicN += int(cosmicNew)
+
+            transcript = csq[csqIndex.index('HGVSc')].split(":")[0]
+            if len(csq[csqIndex.index('HGVSc')].split(":")) > 1:
+                codingName = csq[csqIndex.index('HGVSc')].split(":")[1]
+            else:
+                codingName = ''
+            ensp = csq[csqIndex.index('HGVSp')]
+
+            popFreqsPop = csqIndex[csqIndex.index('AF'):csqIndex.index('gnomAD_SAS_AF')+1]
 
 
-''' Prog Version sheet (9) '''
+
+## Old Version
+
+'' Prog Version sheet (9) '''
 worksheetVersions.write('A1', 'Version Log', headingFormat)
 worksheetVersions.write_row(1, 0, emptyList, lineFormat)
 worksheetVersions.write('A3', 'Sample: '+str(sample))
@@ -913,12 +988,6 @@ worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicat
                                 str(minCov)+'x', str(medCov)+'x', str(maxCov)+'x'], tableHeadFormat)
 worksheetOver.write_row(20, 0, [runID, sample, avgCov, str(round(float(duplicateLevel)*100, 2))]+breadth.split(','))
 
-cov_chrX_cmd = 'grep "chrX_region" '+mosdepth_summary
-cov_chrX = subprocess.run(cov_chrX_cmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip().split("\t")[3]
-
-cov_chrY_cmd = 'grep "chrY_region" '+mosdepth_summary
-cov_chrY = subprocess.run(cov_chrY_cmd, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip().split("\t")[3]
-
 if lowPos == 0:  # From Hotspot sheet
     worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
     worksheetOver.write(24, 0, str(lowPos))
@@ -930,15 +999,11 @@ else:
 worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')  # From Cov sheet
 worksheetOver.write(27, 0, str(lowRegions))  # From Cov sheet
 
-worksheetOver.write(29, 0, 'Average coverage of region in bedfile: ')
-worksheetOver.write_row(30,0, ['chrX_region', cov_chrX])
-worksheetOver.write_row(31,0, ['chrY_region', cov_chrY])
-
-worksheetOver.write(33, 0, 'Bedfile: '+bedfile)
-worksheetOver.write(34, 0, 'Hotspotlist: '+hotspotFile)
-worksheetOver.write(35, 0, 'Artefact file: '+artefactFile)
-worksheetOver.write(36, 0, 'Germline file: '+germlineFile)
-worksheetOver.write(37, 0, 'Pindel artefact file: '+pindelArtefactFile)
+worksheetOver.write(29, 0, 'Bedfile: '+bedfile)
+worksheetOver.write(30, 0, 'Hotspotlist: '+hotspotFile)
+worksheetOver.write(31, 0, 'Artefact file: '+artefactFile)
+worksheetOver.write(32, 0, 'Germline file: '+germlineFile)
+worksheetOver.write(33, 0, 'Pindel artefact file: '+pindelArtefactFile)
 
 
 ''' Prog Version sheet (8), added last '''
