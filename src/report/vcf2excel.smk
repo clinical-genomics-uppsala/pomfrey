@@ -24,10 +24,12 @@ rule vcf2excel:
         cart_log="qc/{sample}_{seqID}/{sample}_{seqID}_Log.csv",
         cart_short="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageShortList.csv",
         cart_short_hot="qc/{sample}_{seqID}/{sample}_{seqID}_coverageShortHotspot.tsv",
+        cart_full="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageFullList.csv",
         picard_dup="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
         mosdepth_summary="qc/mosdepth/{sample}_{seqID}/{sample}_{seqID}.mosdepth.summary.txt",
         # In configfile
-        bedfile=config["bed"]["pindel"],
+        bedfile=config["bed"]["bedfile"],
+        bedfile_pindel=config["bed"]["pindel"],
         bedfile_cnv=config["CNV"]["bedPoN"],
         cyto_coord_convert=config["CNV"]["cyto"],
         hotspot=config["bed"]["hotspot"],
@@ -41,7 +43,8 @@ rule vcf2excel:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
         seqid=config["seqID"]["sequencerun"],
-        thresholds=config["cartools"]["cov"],
+        thresholds=config["cartool"]["cov"],
+        singularitys=config["singularitys"],
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
     wildcard_constraints:
