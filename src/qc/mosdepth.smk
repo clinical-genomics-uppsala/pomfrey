@@ -16,6 +16,6 @@ rule mosdepth:
     threads:
         4
     singularity:
-        "docker://hydragenetics/mosdepth:0.3.2"
+        config["singularitys"]["mosdepth"]
     wrapper:
         "v1.12.0/bio/mosdepth"
