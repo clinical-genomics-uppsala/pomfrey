@@ -55,7 +55,7 @@ rule sortPisces:
         vcf="variantCalls/callers/pisces/{sample}_{seqID}/{sample}_{seqID}.pisces.unsorted.vcf",
         name="variantCalls/callers/pisces/{sample}_{seqID}-name.txt",
     output:
-        temp("variantCalls/callers/pisces/{sample}_{seqID}.pisces.vcf"),
+        temp("variantCalls/callers/pisces/{sample}_{seqID}.pisces.weirdAF.vcf"),
     container:
         config["singularitys"]["bcftools"]
     log:

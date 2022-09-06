@@ -25,10 +25,8 @@ for record in vcf_in.fetch():
     if method == "freebayes":
         ad = record.samples[sample].get("AD")
         af = []
-        af = [ad[1]/(ad[0]+ad[1])]
-        if len(ad) > 2:
-            for item in ad[2:]:
-                af.append(item/sum(ad))
+        for item in ad:
+            af.append(item/sum(ad))
     if method == "pisces":
         af = record.samples[sample].get("VF")
     if method == "mutect2" or method == "vardict":
@@ -38,6 +36,6 @@ for record in vcf_in.fetch():
         ac = record.info["AC"]
         af = ac/dp
 
-    record.info["AF"] = af
+    record.info["AF"] = tuple(af)
 
     vcf_out.write(record)

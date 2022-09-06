@@ -26,13 +26,14 @@ To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it
 ### Singularity Containers
 | Program | Version | Source |
 | ------- | ------- | ------ |
-| Bcftools |1.9 | docker://quay.io/biocontainers/bcftools:1.9--h68d8f2e_8	|
+| Bcftools | 1.14 | docker://hydragenetics/common:0.1.0	|
+| Bwa | 0.7.17 |docker://hydragenetics/bwa_mem:0.7.17|
 | Cutadapt | 2.5 |	docker://quay.io/biocontainers/cutadapt:2.5--py37h516909a_0 |
 | Fastqc | 0.11.8 | docker://quay.io/biocontainers/fastqc:0.11.8--1	|
 | Freebayes | 1.3.1 |docker://quay.io/biocontainers/freebayes:1.3.1--py37h56106d0_0 |
 | GATK4 | 4.1.7.0 | docker://broadinstitute/gatk:4.1.7.0 |
-| MultiQC| 1.7 |	docker://quay.io/biocontainers/multiqc:1.7--py_3	|
-| Pindel | 0.2.58	| docker://shuangbroad/pindel:v0.2.5b8 |
+| MultiQC| 1.11 | docker://hydragenetics/multiqc:1.11 |
+| Pindel | 0.2.59	| docker://hydragenetics/pindel:0.2.5b9 |
 | Vardict-java | 1.7.0 | docker://quay.io/biocontainers/vardict-java:1.7.0--0	|
 | Vep | 99 |docker://ensemblorg/ensembl-vep:release_99.0	|
 | Vt | 0.57721 | docker://quay.io/biocontainers/vt:0.57721--hdf88d34_2	|
@@ -119,5 +120,8 @@ samples:
 Json file with config for submission on HPC. Need to be specified to suit you HPC. See cluster-config.json for example.
 ### Snakemake command
 `
-snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -p core -t {cluster.time} -n {cluster.n} --nodes=1-1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --configfile ${sample_config}
+snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -p core -t {cluster.time} -n {cluster.n} --nodes=1-1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --keep-going --configfile ${sample_config}
 `
+
+### Rule graph
+![Alt text here](images/Rulegraph_220314.svg)
