@@ -6,6 +6,7 @@ import xlsxwriter
 from datetime import date
 import subprocess
 import yaml
+import gzip
 
 # Define sys.argvs
 vcf_snv = VariantFile(snakemake.input.vcf_snv)
@@ -44,11 +45,6 @@ def file_length(fname):
     return i + 1
 
 
-minCov = int(snakemake.params.thresholds.split(' ')[0]) # , om mosdepth
-medCov = int(snakemake.params.thresholds.split(' ')[1])
-maxCov = int(snakemake.params.thresholds.split(' ')[2])
-
-
 shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
                   'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
                   'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
@@ -74,6 +70,57 @@ synoVariants = [['c.1416G>A', 'chr3', '128199889', 'C', 'T'], ['c.1023C>T', 'chr
                 ['c.351C>G', 'chr3', '128205090', 'G', 'C'], ['c.375G>A', 'chr17', '7579312', 'C', 'T'],
                 ['c.375G>T', 'chr17', '7579312', 'C', 'A'], ['c.375G>C', 'chr17', '7579312', 'C', 'G'],
                 ['c.672G>A', 'chr17', '7578177', 'C', 'T'], ['c.993G>A', 'chr17', '7576853', 'C', 'T']]
+
+min_cov = int(snakemake.params.thresholds.split(',')[0])
+med_cov = int(snakemake.params.thresholds.split(',')[1])
+max_cov = int(snakemake.params.thresholds.split(',')[2])
+
+''' Coverage of all regions in bedfile '''
+bed_table = []
+with open(snakemake.input.bedfile, 'r') as bedfile:
+    next(bedfile)
+    # Skip header
+    for line in bedfile:
+        bed_table.append(line.strip().split('\t'))
+# Coverage per region for Coverage sheet
+cov_table_lines = []
+with gzip.open(snakemake.input.mosdepth_regions, 'rt') as regionsfile:
+    for lline in regionsfile:
+        line = lline.strip().split('\t')
+        cov_row = [line[0], line[1], line[2], line[3], line[4]]
+        cov_table_lines.append(cov_row)
+
+''' Low cov file '''
+low_cov_lines = []
+with open(snakemake.input.mosdepth_lowcov, 'r') as lowfile:
+    for lline in lowfile:
+        line = lline.strip().split("\t")
+        for bedline in bed_table:  # blir det en rad eller element?
+            if int(line[3]) <= int(min_cov) and line[0] == bedline[0] and \
+               int(line[1]) >= int(bedline[1]) and int(line[2]) <= int(bedline[2]):
+                low_cov_lines.append([bedline[3]]+line)
+                break
+
+# Sort based on coverage
+low_cov_lines.sort(key=lambda x: x[3])
+
+# Number of low cov regions for the Overview sheet.
+low_regions = len(low_cov_lines)
+
+''' Hotspot file '''
+low_pos = 0
+hotspotTable = []
+with open(snakemake.input.mosdepth_hotspot, 'r') as hotFile:
+    for dpLine in hotFile:
+        line = dpLine.strip().split("\t")
+        chr = line[0]
+        pos = line[2]
+        dp = line[3]
+
+        hotspotTable.append([chr, str(pos), str(dp)])
+        if int(dp) <= med_cov:
+            low_pos += 1
+hotspotTable.sort(key=lambda x: float(x[2]))
 
 
 ''' Loop through vcf_snv to get snvs and intron '''
@@ -377,62 +424,7 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
 
             cnv_lines.append([sample, geneString, chrom, str(start_pos)+'-'+str(end_pos), cytoCoordString, str(sample_purity),
                              '', '', str(round(logRatio, 4)), str(copyNumberTumor)])
-''' Low cov file '''
-low_cov_lines = []
-with open(snakemake.input.cart_short) as csvfile:
-    readCSV = csv.reader(csvfile, delimiter=',')
-    next(readCSV)
 
-    for line in readCSV:
-        while not line[-1]:  # Remove empty fields at the end of line.
-            line.pop()
-        for i in range(1, int((len(line)-1)/5+1)):  # For each region/ with lower cov, create a new row.
-            start = 1+5*(i-1)
-            end = 1+5*i
-            covRow = [line[0]]+line[start:end]
-            low_cov_lines.append(covRow)
-    # sort based on Coverage
-    low_cov_lines.sort(key=lambda x: x[4])
-    low_regions = len(low_cov_lines)
-
-''' Hotspot file '''
-lowPos = 0
-hotspotTable = []
-with open(snakemake.input.cart_short_hot, 'r') as hotFile:
-    for dpLine in hotFile:
-        cov = dpLine.split("\t")
-        chrCov = cov[0]
-        posCov = cov[1]
-        dp = cov[2].rstrip()
-
-        with open(snakemake.input.hotspot, "r") as hotspotBed:
-            for hotspotLine in hotspotBed:
-                hotspot = hotspotLine.split("\t")
-                chrHS = hotspot[0]
-                lowHS = hotspot[1]
-                # highHS = hotspot[2]
-                # Always the same as bedfile just without region, How does CARTool handle if hotspot is longer than 1bp?
-                if chrCov == chrHS and lowHS == posCov:
-                    hotspotTable.append([chrCov, posCov, dp, hotspot[3].rstrip()])
-                    if int(dp) <= medCov:
-                        lowPos += 1
-hotspotTable.sort(key=lambda x: float(x[2]))
-
-''' Coverage of all regions in bedfile '''
-cov_table_lines = []
-with open(snakemake.input.cart_full) as csvfile:
-    readCSV = csv.reader(csvfile, delimiter=',')
-    next(readCSV)
-    # Skip header
-    for line in readCSV:
-        while not line[-1]:  # Remove empty fields at the end of line.
-            line.pop()
-        for i in range(1, int((len(line)-1)/5+1)):  # For each region/ with lower cov, create a new row.
-            start = 1+5*(i-1)
-            end = 1+5*i
-            covRow = [line[0]]+line[start:end]
-            cov_table_lines.append(covRow)
-# Versions
 
 ''' Xlsx sheets '''
 workbook = xlsxwriter.Workbook(snakemake.output[0])
@@ -478,29 +470,31 @@ worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron & Synonymous'!A1", string='Intron & synonymous variants')
 worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
-worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(minCov)+'x')
+worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
 worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
 worksheetOver.write_url(15, 0, "internal: 'Coverage'!A1", string='Average coverage of all regions in bed')
 worksheetOver.write_url(16, 0, "internal:'Version'!A1", string='Version Log')
 worksheetOver.write_row(17, 0, emptyList, lineFormat)
 
-avgCov = extractMatchingLines('Depth', snakemake.input.cart_log, '-wE').split(',')[1].split(' ')[0]
-breadth = extractMatchingLines("Breadth:", snakemake.input.cart_log, '-wE').split(',')[1:]
+avgCov = extractMatchingLines("total_region", snakemake.input.mosdepth_summary).split('\t')[3]
 duplicateLevel = extractMatchingLines('PERCENT', snakemake.input.picard_dup, '-A1').split('\n')[-1].split('\t')[8]
+with open(snakemake.input.mosdepth_thresh_summary) as threshold_summary:
+     thresholds = threshold_summary.read().strip().split("\t")
 
 worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
-                                str(minCov)+'x', str(medCov)+'x', str(maxCov)+'x'], tableHeadFormat)
-worksheetOver.write_row(20, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2))]+breadth)
+                                str(min_cov)+'x', str(med_cov)+'x', str(max_cov)+'x'], tableHeadFormat)
+worksheetOver.write_row(20, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2)),
+                                str(thresholds[0]), str(thresholds[1]), str(thresholds[2])])
 
-if lowPos == 0:  # From Hotspot sheet
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
-    worksheetOver.write(24, 0, str(lowPos))
+if low_pos == 0:  # From Hotspot sheet
+    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(24, 0, str(low_pos))
 else:
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(medCov)+'x: ')
-    worksheetOver.write(24, 0, str(lowPos), redFormat)
+    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(24, 0, str(low_pos), redFormat)
     worksheetOver.write_url(25, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
 
-worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(minCov)+'x: ')
+worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(min_cov)+'x: ')
 worksheetOver.write(27, 0, str(low_regions))  # From low cov sheet
 
 cov_chrX = extractMatchingLines('chrX_region', snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
@@ -528,7 +522,7 @@ worksheetShortList.write('A1', 'Variants in genes to report', headingFormat)
 worksheetShortList.write('A3', 'Sample: '+str(sample))
 worksheetShortList.write('A6', 'VEP: '+vepline)  # , textwrapFormat)
 worksheetShortList.write('A8', 'The following filters were applied: ')
-worksheetShortList.write('B9', 'Coverage >= 100x')
+worksheetShortList.write('B9', 'Coverage >= '+str(min_cov)+'x')
 worksheetShortList.write('B10', 'Population freq (KGP, gnomAD, NHLBI_ESP ) <= 2%')
 worksheetShortList.write('B11', 'Biotype is protein coding')
 worksheetShortList.write('B12', 'Consequence not deemed relevant')
@@ -539,14 +533,14 @@ worksheetShortList.write_row(14, 0, shortListGenes)
 worksheetShortList.write('A16', 'For all variants see: ')
 worksheetShortList.write_url('B16', "internal:'SNVs'!A1", string='SNVs')
 
-worksheetShortList.write('A18', 'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetShortList.write('A18', 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetShortList.write('A19', 'Variant likely germline', greenFormat)
 worksheetShortList.write_row('A21', tableheading, tableHeadFormat)  # 1 index
 row = 21  # 0 index
 col = 0
 i = 0
 for line in shortListSNV:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetShortList.write_row(row, col, line, italicFormat)
         worksheetShortList.write_url('T'+str(row+1), shortListSNVigv[i], string="IGV image")
     else:
@@ -555,7 +549,7 @@ for line in shortListSNV:
     row += 1
     i += 1
 for line in greenShortList:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetShortList.write_row(row, col, line, green_italicFormat)
     else:
         worksheetShortList.write_row(row, col, line, greenFormat)
@@ -569,12 +563,12 @@ worksheetSNV.write('A3', 'Sample: '+str(sample))
 worksheetSNV.write('A4', 'Reference used: '+str(refV))
 worksheetSNV.write('A6', 'VEP: '+vepline)  # , textwrapFormat)
 worksheetSNV.write('A8', 'The following filters were applied: ')
-worksheetSNV.write('B9', 'Coverage >= '+str(minCov)+'x')
+worksheetSNV.write('B9', 'Coverage >= '+str(min_cov)+'x')
 worksheetSNV.write('B10', 'Population freq (KGP, gnomAD, NHLBI_ESP ) <= 2%')
 worksheetSNV.write('B11', 'Biotype is protein coding')
 worksheetSNV.write('B12', 'Consequence not deemed relevant')
 
-worksheetSNV.write('A14', 'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetSNV.write('A14', 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetSNV.write('A15', 'Variant in artefact list ', orangeFormat)
 worksheetSNV.write('A16', 'Variant likely germline', greenFormat)
 worksheetSNV.write('A17', 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
@@ -583,7 +577,7 @@ row = 19  # 0 index
 col = 0
 i = 0
 for line in white:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetSNV.write_row(row, col, line, italicFormat)
         worksheetSNV.write_url('T'+str(row+1), whiteIGV[i], string="IGV image")
     else:
@@ -592,20 +586,20 @@ for line in white:
     row += 1
     i += 1
 for line in green:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetSNV.write_row(row, col, line, green_italicFormat)
     else:
         worksheetSNV.write_row(row, col, line, greenFormat)
     row += 1
 for line in orange:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetSNV.write_row(row, col, line, orange_italicFormat)
     else:
         worksheetSNV.write_row(row, col, line, orangeFormat)
     row += 1
 i = 0
 for line in underFive:
-    if line[8] < medCov:
+    if line[8] < med_cov:
         worksheetSNV.write_row(row, col, line, italicFormat)
         worksheetSNV.write_url('T'+str(row+1), underFiveIGV[i], string="IGV image")
     else:
@@ -633,7 +627,7 @@ row = 6
 for gene in genes:
     worksheetIndel.write('B'+str(row), gene)
     row += 1
-worksheetIndel.write(row, 0, 'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetIndel.write(row, 0, 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetIndel.write(row+1, 0, 'Variant in artefact list ', orangeFormat)
 worksheetIndel.write(row+2, 0, 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact and germline variants.')
 row += 5
@@ -644,7 +638,7 @@ worksheetIndel.write_row('A'+str(row), tableheading, tableHeadFormat)  # 1 index
 col = 0
 i = 0
 for line in whiteIndel:
-    if line[10] < medCov:
+    if line[10] < med_cov:
         worksheetIndel.write_row(row, col, line, italicFormat)
         worksheetIndel.write_url('Q'+str(row+1), whiteIGVIndel[i], string="IGV image")
     else:
@@ -654,7 +648,7 @@ for line in whiteIndel:
     i += 1
 
 for line in orangeIndel:
-    if line[10] < medCov:
+    if line[10] < med_cov:
         worksheetIndel.write_row(row, col, line, orange_italicFormat)
     else:
         worksheetIndel.write_row(row, col, line, orangeFormat)
@@ -662,7 +656,7 @@ for line in orangeIndel:
 
 i = 0
 for line in underFiveIndel:
-    if line[10] < medCov:
+    if line[10] < med_cov:
         worksheetIndel.write_row(row, col, line, italicFormat)
         worksheetIndel.write_url('Q'+str(row+1), underFiveIGVIndel[i], string="IGV image")
     else:
@@ -678,7 +672,7 @@ worksheetIntron.write('A1', 'Intron, non-coding and synonymous variants', headin
 worksheetIntron.write_row(1, 0, emptyList, lineFormat)
 worksheetIntron.write('A3', 'Sample: '+str(sample))
 worksheetIntron.write('A6', 'The following filters for the introns were applied: ')
-worksheetIntron.write('B7', 'Coverage >= '+str(minCov)+'x')
+worksheetIntron.write('B7', 'Coverage >= '+str(min_cov)+'x')
 worksheetIntron.write('B8', 'PopAF <= 2 %')
 worksheetIntron.write('B9', 'Allele Frequency >= 20%')
 worksheetIntron.write('A10', 'For synonymous variants all matching are reported.')
@@ -698,7 +692,7 @@ for synoVariant in synoVariants:
     row += 1
 
 row += 1
-worksheetIntron.write('A'+str(row), 'Coverage below '+str(medCov)+'x', italicFormat)
+worksheetIntron.write('A'+str(row), 'Coverage below '+str(med_cov)+'x', italicFormat)
 row += 2
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP',
                 'Transcript', 'Mutation cds', 'ENSP', 'Consequence', 'Max popAF', 'Max Pop', 'Callers']
@@ -707,7 +701,7 @@ worksheetIntron.write_row('A'+str(row+1), tableheading, tableHeadFormat)  # 1 in
 row += 1
 
 for line in intron_variants:
-    if int(line[8]) < medCov:
+    if int(line[8]) < med_cov:
         worksheetIntron.write_row(row, col, line, italicFormat)
     else:
         worksheetIntron.write_row(row, col, line)
@@ -718,7 +712,7 @@ worksheetIntron.write(row, col, 'Synonymous variants', tableHeadFormat)
 worksheetIntron.write_row(row+1, col, tableheading, tableHeadFormat)
 row += 2
 for line in synoFound:
-    if int(line[8]) < medCov:
+    if int(line[8]) < med_cov:
         worksheetIntron.write_row(row, col, line, italicFormat)
     else:
         worksheetIntron.write_row(row, col, line)
@@ -760,12 +754,12 @@ for line in cnv_lines:
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
 worksheetLowCov.set_column(1, 4, 10)
-worksheetLowCov.write('A1', 'CARTools coverage analysis', headingFormat)
+worksheetLowCov.write('A1', 'Mosdepth coverage analysis', headingFormat)
 worksheetLowCov.write_row('A2', emptyList, lineFormat)
 worksheetLowCov.write('A3', 'Sample: '+str(sample))
-description = 'Gene Regions with coverage lower than '+str(minCov)+'x.'
+description = 'Gene Regions with coverage lower than '+str(min_cov)+'x.'
 worksheetLowCov.write('A4', description)
-covHeadings = ['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length of Region']
+covHeadings = ['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage']
 worksheetLowCov.write_row('A6', covHeadings, tableHeadFormat)  # 1 index
 row = 6  # 0 index
 for line in low_cov_lines:
@@ -779,22 +773,21 @@ worksheetHotspot.write('A3', 'Sample: '+str(sample))
 worksheetHotspot.write_row('A5', ['Chr', 'Pos', 'Depth', 'Gene'], tableHeadFormat)
 row = 5
 for hotLine in hotspotTable:
-    if int(hotLine[2]) <= medCov:
+    if int(hotLine[2]) <= med_cov:
         worksheetHotspot.write_row(row, 0, hotLine, redFormat)
     else:
         worksheetHotspot.write_row(row, 0, hotLine)
     row += 1
 
 # Coverage
-numRows = file_length(snakemake.input.cart_full)
 worksheetCov.write('A1', 'Average Coverage', headingFormat)
 worksheetCov.write_row('A2', emptyList, lineFormat)
 worksheetCov.write('A3', 'Sample: '+str(sample))
-worksheetCov.write('A4', 'Averge coverage of each region in bedfile')
+worksheetCov.write('A4', 'Averge coverage of each region in bedfile from Mosdepth')
 
 tableArea = 'A6:F'+str(len(cov_table_lines)+6)  # rows of full list
-headerListDict = [{'header': 'Region Name'}, {'header': 'Chr'}, {'header': 'Start'},
-                  {'header': 'End'}, {'header': 'Mean Coverage'}, {'header': 'Length of Region'}, ]
+headerListDict = [{'header': 'Chr'}, {'header': 'Start'}, {'header': 'End'}, {'header': 'Region Name'},
+                  {'header': 'Avg Coverage'},]
 worksheetCov.add_table(tableArea, {'data': cov_table_lines, 'columns': headerListDict, 'style': 'Table Style Light 1'})
 
 # QCI

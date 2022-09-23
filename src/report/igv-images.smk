@@ -57,7 +57,7 @@ rule createBatFile:
         vcf="Results/{sample}_{seqID}/Reports/{sample}_{seqID}.PASS.vcf",
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",
         pindelWait="Results/{sample}_{seqID}/Reports/{sample}_{seqID}.pindel.done",
-        bed=config["bed"]["cartool"],
+        bed=config["bed"]["bedfile"],
         ref=config["reference"]["ref"],  #until build own .genome file.
     output:
         "Results/{sample}_{seqID}/Reports/IGV/{sample}_{seqID}-igv.bat",
