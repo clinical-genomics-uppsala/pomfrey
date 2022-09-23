@@ -17,20 +17,20 @@ vcf_out = VariantFile(snakemake.output.vcf, 'w', header=new_header)
 
 for record in vcf_in.fetch():
     if caller == "freebayes":
-        ad = record.samples[sample].get("AD")
+        ads = record.samples[0].get("AD")
         ad_afs = []
         for ad in ads:
             ad_afs.append(ad/sum(ads))
-        af=tuple(ad_afs[1:])
+        af = tuple(ad_afs[1:])
     elif caller == "pisces":
         af = record.samples[0].get("VF")
     elif caller == "mutect2" or caller == "vardict":
         af = record.samples[0].get("AF")
     else:
-            raise ValueError(
-                "{} is not a valid caller for this script. Choose between:"
-                "freebayes, mutect2, pisces, vardict.".format(caller)
-            )
+        raise ValueError(
+            "{} is not a valid caller for this script. Choose between:"
+            "freebayes, mutect2, pisces, vardict.".format(caller)
+        )
     record.info["AF"] = af
 
     vcf_out.write(record)

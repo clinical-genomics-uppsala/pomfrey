@@ -13,6 +13,7 @@ def extractMatchingLines(expressionMatch, artefactFile, grepvarible):
     matchLines = subprocess.run(cmdArt, stdout=subprocess.PIPE, shell='TRUE').stdout.decode('utf-8').strip()
     return matchLines
 
+
 min_cov = int(snakemake.params.thresholds.split(',')[0])
 med_cov = int(snakemake.params.thresholds.split(',')[1])
 max_cov = int(snakemake.params.thresholds.split(',')[2])
@@ -23,8 +24,8 @@ for picard_dup in snakemake.input.picard_dup:
     duplicateLevel = extractMatchingLines('PERCENT', picard_dup, '-A1 ').split('\n')[-1].split('\t')[8]  # need *100 to be percent
     duplicates_percent = str(round(float(duplicateLevel)*100, 2))
     sample = picard_dup.split("/")[-1].split("_")[0]
-    data_json[str(sample)]={}
-    data_json[str(sample)]['Duplicates [%]']=duplicates_percent
+    data_json[str(sample)] = {}
+    data_json[str(sample)]['Duplicates [%]'] = duplicates_percent
 
 for picard_metrics in snakemake.input.picard_metrics:
     met = extractMatchingLines("BAIT_SET", picard_metrics, "-A1 ")
@@ -40,7 +41,7 @@ for picard_metrics in snakemake.input.picard_metrics:
     # metricsDict['PCT_TARGET_BASES_100X']
 
 for samtools_stats in snakemake.input.samtools_stats:
-    sam = extractMatchingLines("SN",samtools_stats, "")
+    sam = extractMatchingLines("SN", samtools_stats, "")
     sam = sam.split('\nSN\t')
     listOfList = [i.split('\t') for i in sam[1:]]
     samDict = {item[0].strip(':'): item[1] for item in listOfList}
@@ -65,7 +66,7 @@ for mosdepth_summary in snakemake.input.mosdepth_summary:
 
 for mosdepth_thresh_summary in snakemake.input.mosdepth_thresh_summary:
     with open(mosdepth_thresh_summary, 'r') as threshold_summary:
-         thresholds = threshold_summary.read().strip().split("\t")
+        thresholds = threshold_summary.read().strip().split("\t")
     sample = mosdepth_thresh_summary.split("/")[-1].split("_")[0]
     data_json[str(sample)]['Breadth '+str(med_cov)+'x'] = thresholds[1]
 
@@ -84,7 +85,7 @@ data_json_ordered = {}
 data_json_ordered["data"] = dict(sorted(data_json.items(), key=lambda sample: samplesheet_order.index(sample[0])))
 
 
-header_json = {"headers":{
+header_json = {"headers": {
                     "Avg Coverage": {
                         "title": "Average Coverage",
                         "description": "Avg cov of bedfile from Mosdepth",
@@ -153,7 +154,7 @@ header_json = {"headers":{
                         "title": "Insert Size s.d.",
                         "description": "Insert size standard deviation from Samtools stats",
                     },
-                }
+            }
     }
 
 id_json = {

@@ -8,10 +8,11 @@ include: "pisces.smk"
 include: "mutect2.smk"
 include: "bgzips.smk"
 
+
 rule fixAF:
     input:
         vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz",
-        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz.tbi"
+        tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz.tbi",
     output:
         vcf=temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
     params:

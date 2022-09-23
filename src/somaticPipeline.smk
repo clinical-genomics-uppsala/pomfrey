@@ -41,11 +41,15 @@ rule all:
             seqID=config["seqID"]["sequencerun"],
         ),
         expand(
-            "variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
+            "variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
         ),
         expand("Results/batchQC_{seqID}/{seqID}_MultiQC.html", seqID=config["seqID"]["sequencerun"]),
         expand(
-            "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
+            "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
         ),
 
 
