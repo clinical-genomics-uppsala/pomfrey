@@ -56,9 +56,11 @@ wildcard_constraints:
 
 ### QC modules
 include: "qc/fastqc.smk"  #fastq in html/text out
-include: "qc/samtools-picard-stats.smk"  #bam in txt out
-include: "qc/cartool.smk"  #bam in tables out
+include: "qc/samtools.smk"  #bam in txt out
+include: "qc/picard.smk"  #bam in txt out
+include: "qc/batch_stats.smk"  #bam in txt out
 include: "qc/mosdepth.smk"
+include: "qc/bedtools.smk"
 ## Trimming in runfolder/{sample}_S[0-9]_R[12]_001.fastq.gz out trimming/{sample}_R[12]_trimmed.fastq.gz
 include: "trimming/cutadapt.smk"
 ## Map in trimming/{sample}_R[12]_trimmed.fastq.gz out bam/{sample}.bam
