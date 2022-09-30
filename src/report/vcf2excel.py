@@ -774,7 +774,7 @@ worksheetLowCov.write_row('A2', emptyList, lineFormat)
 worksheetLowCov.write('A3', 'Sample: '+str(sample))
 description = 'Gene Regions with coverage lower than '+str(min_cov)+'x.'
 worksheetLowCov.write('A4', description)
-covHeadings = ['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length of Region']
+covHeadings = ['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage']
 worksheetLowCov.write_row('A6', covHeadings, tableHeadFormat)  # 1 index
 row = 6  # 0 index
 for line in low_cov_lines:
