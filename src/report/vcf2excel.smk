@@ -40,28 +40,34 @@ rule vcf2excel:
 
 rule vcf2excelHD829:
     input:
-        snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
-        indel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
-        cart="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageShortList.csv",
+        vcf_snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
+        vcf_pindel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
+        picard_dup="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
+        mosdepth_summary="qc/mosdepth/{sample}_{seqID}.mosdepth.summary.txt",
+        mosdepth_lowcov="qc/mosdepth/{sample}_{seqID}.mosdepth.lowCov.regions.txt",
+        mosdepth_regions="qc/mosdepth/{sample}_{seqID}.regions.bed.gz",
+        mosdepth_thresh_summary="qc/mosdepth/{sample}_{seqID}.thresholds_summary.txt",
+        mosdepth_hotspot="qc/mosdepth/{sample}_{seqID}.mosdepth.hotspots.txt",
         # In configfile
-        bed=config["bed"]["pindel"],
+        bedfile=config["bed"]["bedfile"],
+        bedfile_pindel=config["bed"]["pindel"],
         hotspot=config["bed"]["hotspot"],
-        artefact=config["bed"]["artefact"],
+        artefact_snv=config["bed"]["artefact"],
+        artefact_pindel=config["bed"]["pindelArtefact"],
         germline=config["bed"]["germline"],
-        hematoCount=config["configCache"]["hemato"],
-        variantsLog=config["configCache"]["variantlist"],
-        shortCov="qc/{sample}_{seqID}/{sample}_{seqID}_coverageShortHotspot.tsv",
+        hemato_count=config["configCache"]["hemato"],
+        variantslog=config["configCache"]["variantlist"],
     output:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
-        configfile=config["seqID"]["sequencerun"] + "_config.yaml",
-        dir=config["programdir"]["dir"],
+        seqid=config["seqID"]["sequencerun"],
+        thresholds=config["misc"]["cov_thresholds"],
+        singularitys=config["singularitys"],
     wildcard_constraints:
         sample="(HD829).*",
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3.6 {params.dir}/src/report/vcf2excelHD829.py {input.snv} {input.indel} {input.cart} {output} "
-        "{params.configfile}) &> {log}"
+    script:
+        "vcf2excelHD829.py"
