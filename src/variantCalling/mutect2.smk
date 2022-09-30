@@ -1,6 +1,5 @@
 localrules:
     split_bedfile,
-    bgzipCallers,
     fixSB,
 
 
