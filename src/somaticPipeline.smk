@@ -41,12 +41,15 @@ rule all:
             seqID=config["seqID"]["sequencerun"],
         ),
         expand(
-            "variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
+            "variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
         ),
-        expand("qc/{sample}_{seqID}/{sample}_batchStats.done", sample=config["samples"], seqID=config["seqID"]["sequencerun"]),
         expand("Results/batchQC_{seqID}/{seqID}_MultiQC.html", seqID=config["seqID"]["sequencerun"]),
         expand(
-            "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png", sample=config["samples"], seqID=config["seqID"]["sequencerun"]
+            "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
         ),
 
 
@@ -56,8 +59,11 @@ wildcard_constraints:
 
 ### QC modules
 include: "qc/fastqc.smk"  #fastq in html/text out
-include: "qc/samtools-picard-stats.smk"  #bam in txt out
-include: "qc/cartool.smk"  #bam in tables out
+include: "qc/samtools.smk"  #bam in txt out
+include: "qc/picard.smk"  #bam in txt out
+include: "qc/batch_stats.smk"  #bam in txt out
+include: "qc/mosdepth.smk"
+include: "qc/bedtools.smk"
 ## Trimming in runfolder/{sample}_S[0-9]_R[12]_001.fastq.gz out trimming/{sample}_R[12]_trimmed.fastq.gz
 include: "trimming/cutadapt.smk"
 ## Map in trimming/{sample}_R[12]_trimmed.fastq.gz out bam/{sample}.bam

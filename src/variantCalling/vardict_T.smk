@@ -1,4 +1,3 @@
-
 rule vardict:
     input:
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",
