@@ -92,7 +92,7 @@ with gzip.open(snakemake.input.mosdepth_regions, 'rt') as regionsfile:
 
 ''' Low cov file '''
 low_cov_lines = []
-condensed_line = ['', '', '', '','']
+condensed_line = ['', '', '', '', '']
 with open(snakemake.input.mosdepth_lowcov, 'r') as lowfile:
     for lline in lowfile:
         line = lline.strip().split("\t")

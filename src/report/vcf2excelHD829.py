@@ -304,7 +304,7 @@ for known_line in known_found:
             known_lines_final.append(line)
         else:
             for itd in itd_lines:
-                if first_found_itd == False:
+                if not first_found_itd:
                     known_lines_final.append(line+itd)
                     first_found_itd = True
                     num_known += 1
@@ -342,7 +342,7 @@ with gzip.open(snakemake.input.mosdepth_regions, 'rt') as regionsfile:
 
 ''' Low cov file '''
 low_cov_lines = []
-condensed_line = ['', '', '', '','']
+condensed_line = ['', '', '', '', '']
 with open(snakemake.input.mosdepth_lowcov, 'r') as lowfile:
     for lline in lowfile:
         line = lline.strip().split("\t")
