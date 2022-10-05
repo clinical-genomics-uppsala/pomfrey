@@ -13,5 +13,6 @@ custom_content:
     - qc-stats
     - cutadapt
     - fastqc
+    - mosdepth
     - samtools
     - picard
