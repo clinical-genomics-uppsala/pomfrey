@@ -16,6 +16,21 @@ rule multiqcBatch:
             seqID=config["seqID"]["sequencerun"],
         ),
         expand(
+            "qc/mosdepth/{sample}_{seqID}.mosdepth.summary.txt",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
+        ),
+        expand(
+            "qc/mosdepth/{sample}_{seqID}.mosdepth.region.dist.txt",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
+        ),
+        expand(
+            "qc/mosdepth/{sample}_{seqID}.mosdepth.global.dist.txt",
+            sample=config["samples"],
+            seqID=config["seqID"]["sequencerun"],
+        ),
+        expand(
             "qc/{sample}_{seqID}/{sample}_{seqID}_R1_trimmed_fastqc.zip",
             sample=config["samples"],
             seqID=config["seqID"]["sequencerun"],
@@ -26,11 +41,6 @@ rule multiqcBatch:
             seqID=config["seqID"]["sequencerun"],
         ),
         "Results/batchQC_{seqID}/{seqID}_stats_mqc.json",
-        expand(
-            "qc/{sample}_{seqID}/{sample}_batchStats.done",
-            sample=config["samples"],
-            seqID=config["seqID"]["sequencerun"],
-        ),
     output:
         "Results/batchQC_{seqID}/{seqID}_MultiQC.html",
     params:

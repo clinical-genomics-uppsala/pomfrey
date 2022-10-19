@@ -1,6 +1,5 @@
 localrules:
     split_bedfile,
-    bgzipCallers,
     fixSB,
 
 
@@ -146,7 +145,7 @@ rule hardFilterMutect2:
         vcf="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.SB.vcf",
         wait="variantCalls/callers/mutect2/{sample}_{seqID}.SB.done",
     output:
-        temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.vcf"),
+        temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.weirdAF.vcf"),
     params:
         config["programdir"]["dir"],
     log:

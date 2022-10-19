@@ -9,7 +9,7 @@ To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it
     [Data]
     Sample_ID,Sample_Name,Description,index,I7_Index_ID,index2,I5_Index_ID,Sample_Project
     ```
-- **Bedfile**: Four columns: chr, start, stop, regionname. No header. The bed-file is used as both target and bait intervals in picard HsMetric for bases on target stats. The fourth column is used in CARTools to identify low coverage regions.
+- **Bedfile**: Four columns: chr, start, stop, regionname. No header. The bed-file is used as both target and bait intervals in picard HsMetric for bases on target stats. The fourth column is used in Mosdepth to identify low coverage regions.
 - **Pindel bedfile**: Since pindel is quite slow a smaller bedfile with limited regions is needed to run pindel.
 - **Intervals-file**: Corresponding to the bedfile for picard jobs. Can be generated in GATK4 with:
     `gatk fileBedToIntervalList --INPUT $bedfile --OUTPUT $interval_output --SEQUENCE_DICTIONARY $reference_dict`
@@ -26,22 +26,24 @@ To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it
 ### Singularity Containers
 | Program | Version | Source |
 | ------- | ------- | ------ |
-| Bcftools |1.9 | docker://quay.io/biocontainers/bcftools:1.9--h68d8f2e_8	|
+| Bcftools | 1.15 | docker://hydragenetics/common:0.1.8	|
+| Bedtools | 2.30 | docker://hydragenetics/common:0.1.8 |
+| Bwa | 0.7.17 |docker://hydragenetics/bwa_mem:0.7.17|
 | Cutadapt | 2.5 |	docker://quay.io/biocontainers/cutadapt:2.5--py37h516909a_0 |
 | Fastqc | 0.11.8 | docker://quay.io/biocontainers/fastqc:0.11.8--1	|
 | Freebayes | 1.3.1 |docker://quay.io/biocontainers/freebayes:1.3.1--py37h56106d0_0 |
 | GATK4 | 4.1.7.0 | docker://broadinstitute/gatk:4.1.7.0 |
-| MultiQC| 1.7 |	docker://quay.io/biocontainers/multiqc:1.7--py_3	|
-| Pindel | 0.2.58	| docker://shuangbroad/pindel:v0.2.5b8 |
+| Mosdepth | 0.3.2 | docker://hydragenetics/mosdepth:0.3.2 |
+| MultiQC| 1.11 | docker://hydragenetics/multiqc:1.11 |
+| Pindel | 0.2.59	| docker://hydragenetics/pindel:0.2.5b9 |
 | Vardict-java | 1.7.0 | docker://quay.io/biocontainers/vardict-java:1.7.0--0	|
 | Vep | 99 |docker://ensemblorg/ensembl-vep:release_99.0	|
 | Vt | 0.57721 | docker://quay.io/biocontainers/vt:0.57721--hdf88d34_2	|
 
 |Program| Comment| Source|
 | ----- | ------ | ----- |
-| bcbio-ensemble-recall | |		bcbio-variation-recall.simg |
+| bcbio-ensemble-recall | |	bcbio-variation-recall.simg |
 | Bwa & Samtools & Picard|  v.7.17 &  v.1.9 & v.2.20.1 | bwa-snakemakewrapper.def |
-| CARTool |In-house program avaialble at [Github](https://github.com/anod6351/CARtool) | CARTools-200206.simg |
 | Igv v.2.4.10 & xvfb | Not working to load hg19 genome into container | igv.def |
 | Pisces v.5.2.11.163 |Microsoft dotnet v.2.1| Pisces_singularity.def	|
 | Python3 | Libraries: csv, pysam, xlsxwriter,date, itemgetter, yaml|	python-pysam.def |
@@ -97,9 +99,8 @@ singularitys:
     vt: ""
     igv: ""
     multiqc: ""
-
-cartool:
-    cov: "100 200 1000" #Coverage limits, first number minCov, second for hotspotlist, third wishful
+misc:
+    cov_thresholds: "minCov,medCov,maxCov" #Coverage limits, first number minCov, second for hotspotlist, third wishful
 
 methods:   # The (trust) order of vcfs into ensemble recall
     mutect2: "mutect2"
@@ -119,5 +120,8 @@ samples:
 Json file with config for submission on HPC. Need to be specified to suit you HPC. See cluster-config.json for example.
 ### Snakemake command
 `
-snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -p core -t {cluster.time} -n {cluster.n} --nodes=1-1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --configfile ${sample_config}
+snakemake -p -j ${max_nr_jobs_submitted} --drmaa "-A ${project} -p core -t {cluster.time} -n {cluster.n} --nodes=1-1 " --use-singularity --cluster-config ${cluster_config} -s ${PATH_TO_POMFREY}/src/somaticPipeline.smk --singularity-args " --cleanenv --bind /data/ --bind /projects/ " --keep-going --configfile ${sample_config}
 `
+
+### Rule graph
+![Alt text here](images/Rulegraph_221004.svg)

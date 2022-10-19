@@ -1,79 +1,73 @@
-localrules:
-    fixCoverageHotspot,
-
-
-rule fixCoverageHotspot:
-    input:
-        tsv="qc/{sample}_{seqID}/{sample}_{seqID}_coverage.tsv",
-        bed=config["bed"]["hotspot"],
-    output:
-        "qc/{sample}_{seqID}/{sample}_{seqID}_coverageShortHotspot.tsv",
-    log:
-        "logs/report/{sample}_{seqID}.covShortHotspot.log",
-    shell:
-        """ ( while read line; do chr=$(echo $line | awk '{{print $1}}'); pos=$(echo $line | awk '{{print $2}}');
-        cat {input.tsv} | grep ${{chr}} | grep ${{pos}} >>{output} ; done < {input.bed} ) &> {log} """
-
-
 rule vcf2excel:
     input:
-        snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
-        indel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
-        gatkSeg="CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg",
-        png="CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
-        cart="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageShortList.csv",
+        vcf_snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
+        vcf_pindel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
+        gatk_seg="CNV/{sample}_{seqID}/{sample}_{seqID}_clean.calledCNVs.seg",
+        gatk_png="CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
+        picard_dup="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
+        mosdepth_summary="qc/mosdepth/{sample}_{seqID}.mosdepth.summary.txt",
+        mosdepth_lowcov="qc/mosdepth/{sample}_{seqID}.mosdepth.lowCov.regions.txt",
+        mosdepth_regions="qc/mosdepth/{sample}_{seqID}.regions.bed.gz",
+        mosdepth_thresh_summary="qc/mosdepth/{sample}_{seqID}.thresholds_summary.txt",
+        mosdepth_hotspot="qc/mosdepth/{sample}_{seqID}.mosdepth.hotspots.txt",
         # In configfile
-        bed=config["bed"]["pindel"],
-        cnvbed=config["CNV"]["bedPoN"],
-        cytoCoord=config["CNV"]["cyto"],
+        bedfile=config["bed"]["bedfile"],
+        bedfile_pindel=config["bed"]["pindel"],
+        bedfile_cnv=config["CNV"]["bedPoN"],
+        cyto_coord_convert=config["CNV"]["cyto"],
         hotspot=config["bed"]["hotspot"],
-        artefact=config["bed"]["artefact"],
-        pindelArtefact=config["bed"]["pindelArtefact"],
+        artefact_snv=config["bed"]["artefact"],
+        artefact_pindel=config["bed"]["pindelArtefact"],
         germline=config["bed"]["germline"],
-        hematoCount=config["configCache"]["hemato"],
-        variantsLog=config["configCache"]["variantlist"],
-        shortCov="qc/{sample}_{seqID}/{sample}_{seqID}_coverageShortHotspot.tsv",
-        igv="Results/{sample}_{seqID}/Reports/IGV/done-igv.txt",
+        hemato_count=config["configCache"]["hemato"],
+        variantslog=config["configCache"]["variantlist"],
+        igv_wait="Results/{sample}_{seqID}/Reports/IGV/done-igv.txt",
     output:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
-        configfile=config["seqID"]["sequencerun"] + "_config.yaml",
-        dir=config["programdir"]["dir"],
+        seqid=config["seqID"]["sequencerun"],
+        thresholds=config["misc"]["cov_thresholds"],
+        singularitys=config["singularitys"],
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
     wildcard_constraints:
         sample="(?!HD829).*",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3.6 {params.dir}/src/report/vcf2excel.py {input.snv} {input.indel} {input.gatkSeg} {input.png} {input.cart} "
-        "{output} {params.configfile}) &> {log}"
+    script:
+        "vcf2excel.py"
 
 
 rule vcf2excelHD829:
     input:
-        snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
-        indel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
-        cart="qc/{sample}_{seqID}/{sample}_{seqID}_MeanCoverageShortList.csv",
+        vcf_snv="variantCalls/annotation/{sample}_{seqID}.filt.vcf.gz",
+        vcf_pindel="variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf.gz",
+        picard_dup="qc/{sample}_{seqID}/{sample}_{seqID}_DuplicationMetrics.txt",
+        mosdepth_summary="qc/mosdepth/{sample}_{seqID}.mosdepth.summary.txt",
+        mosdepth_lowcov="qc/mosdepth/{sample}_{seqID}.mosdepth.lowCov.regions.txt",
+        mosdepth_regions="qc/mosdepth/{sample}_{seqID}.regions.bed.gz",
+        mosdepth_thresh_summary="qc/mosdepth/{sample}_{seqID}.thresholds_summary.txt",
+        mosdepth_hotspot="qc/mosdepth/{sample}_{seqID}.mosdepth.hotspots.txt",
         # In configfile
-        bed=config["bed"]["pindel"],
+        bedfile=config["bed"]["bedfile"],
+        bedfile_pindel=config["bed"]["pindel"],
         hotspot=config["bed"]["hotspot"],
-        artefact=config["bed"]["artefact"],
+        artefact_snv=config["bed"]["artefact"],
+        artefact_pindel=config["bed"]["pindelArtefact"],
         germline=config["bed"]["germline"],
-        hematoCount=config["configCache"]["hemato"],
-        variantsLog=config["configCache"]["variantlist"],
-        shortCov="qc/{sample}_{seqID}/{sample}_{seqID}_coverageShortHotspot.tsv",
+        hemato_count=config["configCache"]["hemato"],
+        variantslog=config["configCache"]["variantlist"],
     output:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
-        configfile=config["seqID"]["sequencerun"] + "_config.yaml",
-        dir=config["programdir"]["dir"],
+        seqid=config["seqID"]["sequencerun"],
+        thresholds=config["misc"]["cov_thresholds"],
+        singularitys=config["singularitys"],
     wildcard_constraints:
         sample="(HD829).*",
     log:
         "logs/report/{sample}_{seqID}.vcf2excel.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3.6 {params.dir}/src/report/vcf2excelHD829.py {input.snv} {input.indel} {input.cart} {output} "
-        "{params.configfile}) &> {log}"
+    script:
+        "vcf2excelHD829.py"

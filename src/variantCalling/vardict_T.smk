@@ -1,4 +1,3 @@
-
 rule vardict:
     input:
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",
@@ -6,7 +5,7 @@ rule vardict:
         ref=config["reference"]["ref"],
         bed=config["bed"]["bedfile"],
     output:
-        temp("variantCalls/callers/vardict/{sample}_{seqID}.vardict.vcf"),
+        temp("variantCalls/callers/vardict/{sample}_{seqID}.vardict.weirdAF.vcf"),
     params:
         af="0.01",
     log:
