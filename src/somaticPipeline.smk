@@ -74,6 +74,7 @@ include: "variantCalling/tumor_only.smk"
 include: "variantCalling/pindel.smk"
 ## CNV?
 include: "CNV/run_GATK_CNV.smk"
+include: "CNV/cnvkit.smk"
 ## Rapportering
 include: "report/multiqc.smk"  # per sample, add per batch as well but only certain results?
 include: "report/vcf2excel.smk"

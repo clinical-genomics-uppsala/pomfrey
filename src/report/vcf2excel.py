@@ -45,6 +45,15 @@ def file_length(fname):
     return i + 1
 
 
+def float_or_na(value):
+    return float(value) if value != '' else None
+
+
+def int_or_na(value):
+    return int(value) if value != '' else None
+
+
+
 shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
                   'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
                   'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
@@ -441,6 +450,29 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
             cnv_lines.append([sample, geneString, chrom, str(start_pos)+'-'+str(end_pos), cytoCoordString, str(sample_purity),
                              '', '', str(round(logRatio, 4)), str(copyNumberTumor)])
 
+#Process CNVkit cns file
+
+
+chromosomes = ['chr'+str(i) for i in range(1,23)]+['chrX','chrY']
+relevant_cnvs = { i : [] for i in chromosomes }
+relevant_cnvs_header = ['Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Allele 1', 'Allele 2','Depth', 'Probes', 'Weight','Genes']
+with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
+    cns_header = next(cnsfile).rstrip().split("\t")
+    for cnv_line in cnsfile:
+        cnv = cnv_line.strip().split("\t")
+        if not (cnv[cns_header.index('cn')] == '2' and cnv[cns_header.index('cn1')] == '1'):
+            cnv_chr = cnv[cns_header.index('chromosome')]
+            cnv_start = int(cnv[cns_header.index('start')])
+            cnv_end = int(cnv[cns_header.index('end')])
+    #        import pdb; pdb.set_trace()
+            cnv_baf = float_or_na(cnv[cns_header.index('baf')])
+            outline = [cnv_chr, cnv_start, cnv_end, float(cnv[cns_header.index('log2')]), 
+                       float(cnv[cns_header.index('ci_hi')]), float(cnv[cns_header.index('ci_lo')]), cnv_baf,
+                       cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]), int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
+                       cnv[cns_header.index('probes')], cnv[cns_header.index('weight')],str(cnv[cns_header.index('gene')])]
+            relevant_cnvs[cnv_chr].append(outline)
+
+
 
 ''' Xlsx sheets '''
 workbook = xlsxwriter.Workbook(snakemake.output[0])
@@ -450,6 +482,7 @@ worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')
 worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
 worksheetCNV = workbook.add_worksheet('CNV')
+worksheetCNVkit = workbook.add_worksheet('CNVkit')
 worksheetLowCov = workbook.add_worksheet('Low Coverage')
 worksheetHotspot = workbook.add_worksheet('Hotspot')
 worksheetCov = workbook.add_worksheet('Coverage')
@@ -766,6 +799,24 @@ for line in cnv_lines:
     worksheetCNV.write_number(row, 9, float(line[9]))  # CN
     row += 1
 
+# CNVkit
+worksheetCNVkit.set_column('B:E', 10)
+
+worksheetCNVkit.write('A1', 'CNVkit calls', headingFormat)
+worksheetCNVkit.write('A3', 'Sample: '+str(sample))
+worksheetCNVkit.write('A5', 'Only non-diploid calls or calls with allelic imbalance included')
+
+
+worksheetCNVkit.insert_image('A7', snakemake.input.cnvkit_scatter)
+
+worksheetCNVkit.write_row('A29', relevant_cnvs_header, tableHeadFormat)
+row=29
+col=0
+for chromosome in chromosomes:
+    for line in relevant_cnvs[chromosome]:
+        worksheetCNVkit.write_row(row, col, line)
+        row+=1
+
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
 worksheetLowCov.set_column(1, 4, 10)
@@ -835,3 +886,4 @@ for containerTuple in containers:
 
 
 workbook.close()
+

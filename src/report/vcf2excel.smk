@@ -22,6 +22,8 @@ rule vcf2excel:
         hemato_count=config["configCache"]["hemato"],
         variantslog=config["configCache"]["variantlist"],
         igv_wait="Results/{sample}_{seqID}/Reports/IGV/done-igv.txt",
+        cnvkit_scatter="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.scatter.png",
+        cnvkit_calls="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.cns",
     output:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
