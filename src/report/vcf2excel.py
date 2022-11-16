@@ -455,7 +455,7 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
 
 chromosomes = ['chr'+str(i) for i in range(1,23)]+['chrX','chrY']
 relevant_cnvs = { i : [] for i in chromosomes }
-relevant_cnvs_header = ['Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Allele 1', 'Allele 2','Depth', 'Probes', 'Weight','Genes']
+relevant_cnvs_header = ['Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
 with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
     cns_header = next(cnsfile).rstrip().split("\t")
     for cnv_line in cnsfile:
@@ -481,7 +481,7 @@ worksheetShortList = workbook.add_worksheet('ShortList')
 worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')
 worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
-worksheetCNV = workbook.add_worksheet('CNV')
+worksheetCNV = workbook.add_worksheet('CNV GATK')
 worksheetCNVkit = workbook.add_worksheet('CNVkit')
 worksheetLowCov = workbook.add_worksheet('Low Coverage')
 worksheetHotspot = workbook.add_worksheet('Hotspot')
@@ -518,7 +518,7 @@ worksheetOver.write_url(8, 0, "internal:'ShortList'!A1", string='Variants in gen
 worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron & Synonymous'!A1", string='Intron & synonymous variants')
-worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
+worksheetOver.write_url(12, 0, "internal:'CNV GATK'!A1", string='CNVs found with GATK4')
 worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
 worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
 worksheetOver.write_url(15, 0, "internal:'Coverage'!A1", string='Average coverage of all regions in bed')
@@ -766,7 +766,7 @@ for line in synoFound:
         worksheetIntron.write_row(row, col, line)
         row += 1
 
-# CNV
+# CNV GATK
 worksheetCNV.conditional_format('G43:G70', {'type': 'cell', 'criteria': 'between',
                                             'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
 worksheetCNV.conditional_format('I43:I70', {'type': 'cell', 'criteria': 'between',
