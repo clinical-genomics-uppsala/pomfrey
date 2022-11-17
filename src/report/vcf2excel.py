@@ -814,7 +814,9 @@ for line in cnv_lines:
     row += 1
 
 # CNVkit
-worksheetCNVkit.set_column('B:E', 10)
+worksheetCNVkit.set_column('C:D', 10)
+worksheetCNVkit.set_column('B:B', 12)
+worksheetCNVkit.set_column('E:E', 15)
 
 worksheetCNVkit.write('A1', 'CNVkit calls', headingFormat)
 worksheetCNVkit.write('A3', 'Sample: '+str(sample))
