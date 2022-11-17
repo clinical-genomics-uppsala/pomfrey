@@ -455,7 +455,7 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
 
 chromosomes = ['chr'+str(i) for i in range(1,23)]+['chrX','chrY']
 relevant_cnvs = { i : [] for i in chromosomes }
-relevant_cnvs_header = ['Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
+relevant_cnvs_header = ['Sample','Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
 with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
     cns_header = next(cnsfile).rstrip().split("\t")
     for cnv_line in cnsfile:
@@ -466,7 +466,7 @@ with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
             cnv_end = int(cnv[cns_header.index('end')])
     #        import pdb; pdb.set_trace()
             cnv_baf = float_or_na(cnv[cns_header.index('baf')])
-            outline = [cnv_chr, cnv_start, cnv_end, float(cnv[cns_header.index('log2')]), 
+            outline = [sample,cnv_chr, cnv_start, cnv_end, float(cnv[cns_header.index('log2')]), 
                        float(cnv[cns_header.index('ci_hi')]), float(cnv[cns_header.index('ci_lo')]), cnv_baf,
                        cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]), int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
                        cnv[cns_header.index('probes')], cnv[cns_header.index('weight')],str(cnv[cns_header.index('gene')])]
