@@ -519,47 +519,49 @@ worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron & Synonymous'!A1", string='Intron & synonymous variants')
 worksheetOver.write_url(12, 0, "internal:'CNV GATK'!A1", string='CNVs found with GATK4')
-worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
-worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
-worksheetOver.write_url(15, 0, "internal:'Coverage'!A1", string='Average coverage of all regions in bed')
-worksheetOver.write_url(16, 0, "internal:'Version'!A1", string='Version Log')
-worksheetOver.write_row(17, 0, emptyList, lineFormat)
+worksheetOver.write_url(13, 0, "internal:'CNVkit'!A1", string='CNVs found with CNVkit')
+worksheetOver.write_url(14, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
+worksheetOver.write_url(15, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
+worksheetOver.write_url(16, 0, "internal:'Coverage'!A1", string='Average coverage of all regions in bed')
+worksheetOver.write_url(17, 0, "internal:'Version'!A1", string='Version Log')
+worksheetOver.write_row(18, 0, emptyList, lineFormat)
 
 avgCov = extractMatchingLines("total_region", snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 duplicateLevel = extractMatchingLines('PERCENT', snakemake.input.picard_dup, '-A1').split('\n')[-1].split('\t')[8]
 with open(snakemake.input.mosdepth_thresh_summary) as threshold_summary:
     thresholds = threshold_summary.read().strip().split("\t")
 
-worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
+worksheetOver.write_row(20, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
                                 str(min_cov)+'x', str(med_cov)+'x', str(max_cov)+'x'], tableHeadFormat)
-worksheetOver.write_row(20, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2)),
+worksheetOver.write_row(21, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2)),
                                 str(thresholds[0]), str(thresholds[1]), str(thresholds[2])])
 
 if low_pos == 0:  # From Hotspot sheet
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
-    worksheetOver.write(24, 0, str(low_pos))
+    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(25, 0, str(low_pos))
 else:
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
-    worksheetOver.write(24, 0, str(low_pos), redFormat)
-    worksheetOver.write_url(25, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
+    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(25, 0, str(low_pos), redFormat)
+    worksheetOver.write_url(26, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
 
-worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(min_cov)+'x: ')
-worksheetOver.write(27, 0, str(low_regions))  # From low cov sheet
+worksheetOver.write(27, 0, 'Number of regions not covered by at least '+str(min_cov)+'x: ')
+worksheetOver.write(28, 0, str(low_regions))  # From low cov sheet
 
 cov_chrX = extractMatchingLines('chrX_region', snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 cov_chrY = extractMatchingLines('chrY_region', snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 
-worksheetOver.write(29, 0, 'Average coverage of region in bedfile:', tableHeadFormat)
-worksheetOver.write_row(30, 0, ['chrX', cov_chrX])
-worksheetOver.write_row(31, 0, ['chrY', cov_chrY])
+worksheetOver.write(30, 0, 'Average coverage of region in bedfile:', tableHeadFormat)
+worksheetOver.write_row(31, 0, ['chrX', cov_chrX])
+worksheetOver.write_row(32, 0, ['chrY', cov_chrY])
 
 
-worksheetOver.write(33, 0, 'Bedfile: ' + snakemake.input.bedfile)
-worksheetOver.write(34, 0, 'Hotspotlist: ' + snakemake.input.hotspot)
-worksheetOver.write(35, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
-worksheetOver.write(36, 0, 'Germline file: ' + snakemake.input.germline)
-worksheetOver.write(37, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
-worksheetOver.write(38, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
+worksheetOver.write(34, 0, 'Bedfile: ' + snakemake.input.bedfile)
+worksheetOver.write(35, 0, 'Hotspotlist: ' + snakemake.input.hotspot)
+worksheetOver.write(36, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
+worksheetOver.write(37, 0, 'Germline file: ' + snakemake.input.germline)
+worksheetOver.write(38, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
+worksheetOver.write(39, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
+
 
 
 # Reported variants
