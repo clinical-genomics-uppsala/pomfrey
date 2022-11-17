@@ -455,7 +455,8 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
 
 chromosomes = ['chr'+str(i) for i in range(1,23)]+['chrX','chrY']
 relevant_cnvs = { i : [] for i in chromosomes }
-relevant_cnvs_header = ['Sample','Chromosome', 'Start', 'End', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
+relevant_cnvs_header = ['Sample','Chromosome', 'Start', 'End','CytoCoordinates', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 
+        'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
 with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
     cns_header = next(cnsfile).rstrip().split("\t")
     for cnv_line in cnsfile:
@@ -466,7 +467,18 @@ with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
             cnv_end = int(cnv[cns_header.index('end')])
     #        import pdb; pdb.set_trace()
             cnv_baf = float_or_na(cnv[cns_header.index('baf')])
-            outline = [sample,cnv_chr, cnv_start, cnv_end, float(cnv[cns_header.index('log2')]), 
+            cytoCoord = ['', '']
+            for chrBand in chrBands:
+                if chrBand[0] == cnv_chr:
+                    if (cnv_start >= int(chrBand[1]) and cnv_start <= int(chrBand[2])):
+                        cytoCoord[0] = chrBand[3]
+                    if (cnv_end >= int(chrBand[1]) and cnv_end <= int(chrBand[2])):
+                        cytoCoord[1] = chrBand[3]
+            if cytoCoord[0] == cytoCoord[1]:
+                cytoCoordString = cnv_chr[3:]+cytoCoord[0]
+            else:
+                cytoCoordString = cnv_chr[3:]+cytoCoord[0]+'-'+cytoCoord[1]
+            outline = [sample,cnv_chr, cnv_start, cnv_end, cytoCoordString, float(cnv[cns_header.index('log2')]), 
                        float(cnv[cns_header.index('ci_hi')]), float(cnv[cns_header.index('ci_lo')]), cnv_baf,
                        cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]), int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
                        cnv[cns_header.index('probes')], cnv[cns_header.index('weight')],str(cnv[cns_header.index('gene')])]
