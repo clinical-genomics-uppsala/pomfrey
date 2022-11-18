@@ -833,6 +833,29 @@ for chromosome in chromosomes:
         worksheetCNVkit.write_row(row, col, line)
         row+=1
 
+relevant_chroms=[key for key, value in relevant_cnvs.items() if value != []]
+row=row+2
+worksheetCNVkit.write(row, col, 'Results per chromosome with aberrant calls', workbook.add_format({'bold': True, 'font_size': 14}))
+row=row+1
+
+for i in relevant_chroms: 
+    if i == 'chrX':
+        chr_int=22
+    elif i == 'chrY':
+        chr_int=23  
+    else:
+        chr_int=int(i.replace('chr',''))-1
+    worksheetCNVkit.write(row, col, str(i),  workbook.add_format({'bold': True, 'font_size': 14}))
+    row+=1
+    worksheetCNVkit.insert_image(row, col, snakemake.input.cnvkit_scatter_perchr[chr_int])
+    row+=22
+    worksheetCNVkit.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
+    row+=1
+    for line in relevant_cnvs[i]:
+        worksheetCNVkit.write_row(row, col, line)
+        row+=1
+    row=row+2
+
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
 worksheetLowCov.set_column(1, 4, 10)

@@ -24,6 +24,10 @@ rule vcf2excel:
         igv_wait="Results/{sample}_{seqID}/Reports/IGV/done-igv.txt",
         cnvkit_scatter="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.scatter.png",
         cnvkit_calls="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.cns",
+        cnvkit_scatter_perchr=expand(
+            "CNV/{{sample}}_{{seqID}}/cnvkit/{{sample}}_{{seqID}}-dedup.loh.scatter_{chr}.png",
+            chr=["chr" + str(i) for i in range(1, 23)] + ["chrX", "chrY"]
+            ),
     output:
         "Results/{sample}_{seqID}/Reports/{sample}_{seqID}.xlsx",
     params:
