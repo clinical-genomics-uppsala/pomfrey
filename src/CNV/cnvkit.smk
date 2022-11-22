@@ -50,7 +50,7 @@ rule cnvkit_scatter_loh:
     container:
         config["singularitys"]["cnvkit"]
     shell:
-        "cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -o {output}"
+        "cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -o {output}  "
 
 rule cnvkit_scatter_loh_perchr: 
     input:
@@ -61,5 +61,15 @@ rule cnvkit_scatter_loh_perchr:
         "CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.scatter_{chr}.png",
     container:
         config["singularitys"]["cnvkit"]
+    params:
+        gene=lambda wildcards: config["CNA"][wildcards.chr],
     shell:
-        "cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -c {wildcards.chr} -o {output}"
+        '''
+        if [ -z {params.gene} ]
+        then
+        cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -c {wildcards.chr} -o {output}
+        else
+        cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -c {wildcards.chr} -o {output} -g {params.gene}
+        fi
+        '''
+
