@@ -45,11 +45,11 @@ def file_length(fname):
     return i + 1
 
 
-shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
+shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CDKN2A', 'CEBPA',
                   'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
                   'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
                   'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
-                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'STAT3', 'STAT5B', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
 
 intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
