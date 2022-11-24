@@ -179,7 +179,7 @@ for record in vcf_snv.fetch():
                     cosmicNew = 0
                 cosmicN += int(cosmicNew)
 
-        if float(af) >= 0.03:
+        if float(af) >= 0.01:
             snv = [runid, sample, gene, record.contig, record.pos, record.ref, alt, af, record.info["DP"], transcript,
                    codingName, ensp, consequence, cosmicVep, cosmicN, clinical, rs, maxPopAf, maxPop, callers]
 
@@ -521,7 +521,7 @@ worksheetSNV.write('B12', 'Consequence not deemed relevant')
 worksheetSNV.write('A14', 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetSNV.write('A15', 'Variant in artefact list ', orangeFormat)
 worksheetSNV.write('A16', 'Variant likely germline', greenFormat)
-worksheetSNV.write('A17', 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
+worksheetSNV.write('A17', 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact and germline variants.')
 
 # Variant table
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP', 'Transcript', 'Mutation cds', 'ENSP',
@@ -581,7 +581,7 @@ for gene in genes:
     row += 1
 worksheetIndel.write(row, col, 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetIndel.write(row+1, col, 'Variant in pindel artefact list.', orangeFormat)
-worksheetIndel.write(row+2, col, 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact variants.')
+worksheetIndel.write(row+2, col, 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact variants.')
 row += 5
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Start', 'End', 'SV length', 'Af',
                 'Ref', 'Alt', 'Dp', 'Transcript', 'Mutation cds', 'ENSP', 'Max popAF', 'Max Pop']

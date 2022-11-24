@@ -53,11 +53,12 @@ def int_or_na(value):
     return int(value) if value != '' else None
 
 
-shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
-                  'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
-                  'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
-                  'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
-                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CDKN2A', 'CEBPA', 'CSF3R',
+                  'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS', 'HRAS',
+                  'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1', 'NOTCH1',
+                  'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L', 'SETBP1',
+                  'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'STAT3', 'STAT5B', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+
 
 intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
@@ -241,7 +242,7 @@ for record in vcf_snv.fetch():
         if 'splice' in consequence:
             spliceVariant = True
 
-    if (record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant) and af >= 0.03:
+    if (record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant) and af >= 0.01:
         # Total number of cosmic hemato hits on the position. Vep reports all cosmicId for that position.
         cosmicVepList = [cosmic for cosmic in existing if cosmic.startswith('CO')]
         if len(cosmicVepList) == 0:
@@ -632,7 +633,7 @@ worksheetSNV.write('B12', 'Consequence not deemed relevant')
 worksheetSNV.write('A14', 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetSNV.write('A15', 'Variant in artefact list ', orangeFormat)
 worksheetSNV.write('A16', 'Variant likely germline', greenFormat)
-worksheetSNV.write('A17', 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
+worksheetSNV.write('A17', 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact and germline variants.')
 worksheetSNV.write_row('A19', tableheading, tableHeadFormat)  # 1 index
 row = 19  # 0 index
 col = 0
