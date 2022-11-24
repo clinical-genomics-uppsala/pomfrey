@@ -1,4 +1,3 @@
-   
 rule cnvkit_batch:
     input:
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",
@@ -17,7 +16,7 @@ rule cnvkit_batch:
         "cnvkit.py batch {input.bam} -r {input.ref} -d CNV/{wildcards.sample}_{wildcards.seqID}/cnvkit/"
 
 
-rule cnvkit_diagram: 
+rule cnvkit_diagram:
     input:
         cns="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.cns",
         cnr="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.cnr",
@@ -32,7 +31,7 @@ rule cnvkit_diagram:
 rule cnvkit_call:
     input:
         cns="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.cns",
-        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz"
+        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz",
     output:
         "CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.cns",
     container:
@@ -40,11 +39,12 @@ rule cnvkit_call:
     shell:
         "cnvkit.py call {input.cns} -v {input.vcf} -o {output}"
 
-rule cnvkit_scatter_loh: 
+
+rule cnvkit_scatter_loh:
     input:
         cns="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.cns",
         cnr="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.cnr",
-        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz"
+        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz",
     output:
         "CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.scatter.png",
     container:
@@ -52,11 +52,12 @@ rule cnvkit_scatter_loh:
     shell:
         "cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -o {output}  "
 
-rule cnvkit_scatter_loh_perchr: 
+
+rule cnvkit_scatter_loh_perchr:
     input:
         cns="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.cns",
         cnr="CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.cnr",
-        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz"
+        vcf="Results/{sample}_{seqID}/Data/{sample}_{seqID}.normalized.genome.vcf.gz",
     output:
         "CNV/{sample}_{seqID}/cnvkit/{sample}_{seqID}-dedup.loh.scatter_{chr}.png",
     container:
@@ -64,12 +65,11 @@ rule cnvkit_scatter_loh_perchr:
     params:
         gene=lambda wildcards: config["CNA"][wildcards.chr],
     shell:
-        '''
+        """
         if [ -z {params.gene} ]
         then
         cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -c {wildcards.chr} -o {output}
         else
         cnvkit.py scatter -s {input.cns} {input.cnr} -v {input.vcf} -c {wildcards.chr} -o {output} -g {params.gene}
         fi
-        '''
-
+        """

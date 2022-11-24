@@ -53,7 +53,6 @@ def int_or_na(value):
     return int(value) if value != '' else None
 
 
-
 shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CBLC', 'CDKN2A', 'CEBPA',
                   'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
                   'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
@@ -450,13 +449,13 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
             cnv_lines.append([sample, geneString, chrom, str(start_pos)+'-'+str(end_pos), cytoCoordString, str(sample_purity),
                              '', '', str(round(logRatio, 4)), str(copyNumberTumor)])
 
-#Process CNVkit cns file
+# Process CNVkit cns file
 
-
-chromosomes = ['chr'+str(i) for i in range(1,23)]+['chrX','chrY']
-relevant_cnvs = { i : [] for i in chromosomes }
-relevant_cnvs_header = ['Sample','Chromosome', 'Start', 'End','CytoCoordinates', 'Log2',' CI high', 'CI low', 'BAF', 'Copy Number', 
-        'Copies Allele 1', 'Copies Allele 2','Depth', 'Probes', 'Weight','Genes']
+chromosomes = ['chr'+str(i) for i in range(1, 23)]+['chrX', 'chrY']
+relevant_cnvs = {i: [] for i in chromosomes}
+relevant_cnvs_header = ['Sample', 'Chromosome', 'Start', 'End', 'CytoCoordinates', 'Log2',
+                        'CI high', 'CI low', 'BAF', 'Copy Number',
+                        'Copies Allele 1', 'Copies Allele 2', 'Depth', 'Probes', 'Weight', 'Genes']
 with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
     cns_header = next(cnsfile).rstrip().split("\t")
     for cnv_line in cnsfile:
@@ -478,12 +477,12 @@ with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
                 cytoCoordString = cnv_chr[3:]+cytoCoord[0]
             else:
                 cytoCoordString = cnv_chr[3:]+cytoCoord[0]+'-'+cytoCoord[1]
-            outline = [sample,cnv_chr, cnv_start, cnv_end, cytoCoordString, float(cnv[cns_header.index('log2')]), 
+            outline = [sample, cnv_chr, cnv_start, cnv_end, cytoCoordString, float(cnv[cns_header.index('log2')]),
                        float(cnv[cns_header.index('ci_hi')]), float(cnv[cns_header.index('ci_lo')]), cnv_baf,
-                       cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]), int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
-                       cnv[cns_header.index('probes')], cnv[cns_header.index('weight')],str(cnv[cns_header.index('gene')])]
+                       cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]),
+                       int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
+                       cnv[cns_header.index('probes')], cnv[cns_header.index('weight')], str(cnv[cns_header.index('gene')])]
             relevant_cnvs[cnv_chr].append(outline)
-
 
 
 ''' Xlsx sheets '''
@@ -573,7 +572,6 @@ worksheetOver.write(36, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
 worksheetOver.write(37, 0, 'Germline file: ' + snakemake.input.germline)
 worksheetOver.write(38, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
 worksheetOver.write(39, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
-
 
 
 # Reported variants
@@ -826,35 +824,36 @@ worksheetCNVkit.write('A5', 'Only non-diploid calls or calls with allelic imbala
 worksheetCNVkit.insert_image('A7', snakemake.input.cnvkit_scatter)
 
 worksheetCNVkit.write_row('A29', relevant_cnvs_header, tableHeadFormat)
-row=29
-col=0
+row = 29
+col = 0
 for chromosome in chromosomes:
     for line in relevant_cnvs[chromosome]:
         worksheetCNVkit.write_row(row, col, line)
-        row+=1
+        row += 1
 
-relevant_chroms=[key for key, value in relevant_cnvs.items() if value != []]
-row=row+2
-worksheetCNVkit.write(row, col, 'Results per chromosome with aberrant calls', workbook.add_format({'bold': True, 'font_size': 14}))
-row=row+1
+relevant_chroms = [key for key, value in relevant_cnvs.items() if value != []]
+row = row+2
+worksheetCNVkit.write(row, col, 'Results per chromosome with aberrant calls',
+                      workbook.add_format({'bold': True, 'font_size': 14}))
+row = row+1
 
-for i in relevant_chroms: 
+for i in relevant_chroms:
     if i == 'chrX':
-        chr_int=22
+        chr_int = 22
     elif i == 'chrY':
-        chr_int=23  
+        chr_int = 23
     else:
-        chr_int=int(i.replace('chr',''))-1
+        chr_int = int(i.replace('chr', ''))-1
     worksheetCNVkit.write(row, col, str(i),  workbook.add_format({'bold': True, 'font_size': 14}))
-    row+=1
+    row += 1
     worksheetCNVkit.insert_image(row, col, snakemake.input.cnvkit_scatter_perchr[chr_int])
-    row+=22
+    row += 22
     worksheetCNVkit.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
-    row+=1
+    row += 1
     for line in relevant_cnvs[i]:
         worksheetCNVkit.write_row(row, col, line)
-        row+=1
-    row=row+2
+        row += 1
+    row = row+2
 
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
@@ -925,4 +924,3 @@ for containerTuple in containers:
 
 
 workbook.close()
-
