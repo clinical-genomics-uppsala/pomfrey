@@ -18,6 +18,7 @@ rule vcf2excel:
         hotspot=config["bed"]["hotspot"],
         artefact_snv=config["bed"]["artefact"],
         artefact_pindel=config["bed"]["pindelArtefact"],
+        cnvkit_artefact=config["bed"]["cnvkitartefact"],
         germline=config["bed"]["germline"],
         hemato_count=config["configCache"]["hemato"],
         variantslog=config["configCache"]["variantlist"],

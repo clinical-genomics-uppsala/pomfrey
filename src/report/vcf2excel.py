@@ -829,8 +829,15 @@ row = 29
 col = 0
 for chromosome in chromosomes:
     for line in relevant_cnvs[chromosome]:
-        worksheetCNVkit.write_row(row, col, line)
-        row += 1
+        if len(extractMatchingLines('"'+str(line[1]) +  ' '  +  str(line[2]) +  ' ' +
+                                    str(line[3]) +  ' ' +str(line[9]) +  ' ' +str(line[10]) +  
+                                    ' ' + str(line[11]) +'"',
+                                    snakemake.input.cnvkit_artefact,'-wE'))>0:
+            worksheetCNVkit.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVkit.write_row(row, col, line)
+            row += 1
 
 relevant_chroms = [key for key, value in relevant_cnvs.items() if value != []]
 row = row+2
