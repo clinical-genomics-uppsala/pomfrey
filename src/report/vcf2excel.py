@@ -573,7 +573,7 @@ worksheetOver.write(36, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
 worksheetOver.write(37, 0, 'Germline file: ' + snakemake.input.germline)
 worksheetOver.write(38, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
 worksheetOver.write(39, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
-
+worksheetOver.write(40, 0, 'CNVkit artefact file: ' + snakemake.input.cnvkit_artefact)
 
 # Reported variants
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP', 'Transcript', 'Mutation cds', 'ENSP',
