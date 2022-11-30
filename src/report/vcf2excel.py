@@ -829,10 +829,10 @@ row = 31
 col = 0
 for chromosome in chromosomes:
     for line in relevant_cnvs[chromosome]:
-        if len(extractMatchingLines('"'+str(line[1]) +  ' '  +  str(line[2]) +  ' ' +
-                                    str(line[3]) +  ' ' +str(line[9]) +  ' ' +str(line[10]) +  
-                                    ' ' + str(line[11]) +'"',
-                                    snakemake.input.cnvkit_artefact,'-wE'))>0:
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
             worksheetCNVkit.write_row(row, col, line, orangeFormat)
             row += 1
         else:
@@ -860,10 +860,10 @@ for i in relevant_chroms:
     worksheetCNVkit.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
     row += 1
     for line in relevant_cnvs[i]:
-        if len(extractMatchingLines('"'+str(line[1]) +  ' '  +  str(line[2]) +  ' ' +
-                                    str(line[3]) +  ' ' +str(line[9]) +  ' ' +str(line[10]) +  
-                                    ' ' + str(line[11]) +'"',
-                                    snakemake.input.cnvkit_artefact,'-wE'))>0:
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
             worksheetCNVkit.write_row(row, col, line, orangeFormat)
             row += 1
         else:
