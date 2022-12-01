@@ -573,7 +573,7 @@ worksheetOver.write(36, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
 worksheetOver.write(37, 0, 'Germline file: ' + snakemake.input.germline)
 worksheetOver.write(38, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
 worksheetOver.write(39, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
-
+worksheetOver.write(40, 0, 'CNVkit artefact file: ' + snakemake.input.cnvkit_artefact)
 
 # Reported variants
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP', 'Transcript', 'Mutation cds', 'ENSP',
@@ -820,17 +820,25 @@ worksheetCNVkit.set_column('E:E', 15)
 worksheetCNVkit.write('A1', 'CNVkit calls', headingFormat)
 worksheetCNVkit.write('A3', 'Sample: '+str(sample))
 worksheetCNVkit.write('A5', 'Only non-diploid calls or calls with allelic imbalance included')
+worksheetCNVkit.write('A7', 'Variant in artefact list ', orangeFormat)
 
+worksheetCNVkit.insert_image('A9', snakemake.input.cnvkit_scatter)
 
-worksheetCNVkit.insert_image('A7', snakemake.input.cnvkit_scatter)
-
-worksheetCNVkit.write_row('A29', relevant_cnvs_header, tableHeadFormat)
-row = 29
+worksheetCNVkit.write_row('A31', relevant_cnvs_header, tableHeadFormat)
+row = 31
 col = 0
 for chromosome in chromosomes:
     for line in relevant_cnvs[chromosome]:
-        worksheetCNVkit.write_row(row, col, line)
-        row += 1
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+            worksheetCNVkit.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVkit.write_row(row, col, line)
+            row += 1
+
 
 relevant_chroms = [key for key, value in relevant_cnvs.items() if value != []]
 row = row+2
@@ -852,8 +860,15 @@ for i in relevant_chroms:
     worksheetCNVkit.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
     row += 1
     for line in relevant_cnvs[i]:
-        worksheetCNVkit.write_row(row, col, line)
-        row += 1
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+            worksheetCNVkit.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVkit.write_row(row, col, line)
+            row += 1
     row = row+2
 
 # Low Coverage
