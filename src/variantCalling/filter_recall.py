@@ -1,4 +1,4 @@
-#!/bin/python3.6
+#!/bin/python3
 import sys
 from pysam import VariantFile
 import subprocess
