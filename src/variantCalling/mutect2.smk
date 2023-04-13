@@ -102,7 +102,7 @@ rule merge_stats:
             seqID=config["seqID"]["sequencerun"],
         ),
     output:
-        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.stats",
+        temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.unfilt.stats"),
     params:
         lambda wildcards, input: " -stats ".join(input.stats),
     log:
@@ -119,7 +119,7 @@ rule filterMutect2:
         stats="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.unfilt.stats",
         fasta=config["reference"]["ref"],
     output:
-        temp("variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf"),
+        "variantCalls/callers/mutect2/{sample,[A-Za-z0-9_-]+}_{seqID}.mutect2.SB.vcf",
     log:
         "logs/variantCalling/mutect2/filter_{sample}_{seqID}.log",
     container:
@@ -153,7 +153,7 @@ rule hardFilterMutect2:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
+        "(python3 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
 
 
 rule merge_bam:

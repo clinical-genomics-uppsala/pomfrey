@@ -1,4 +1,4 @@
-#!/bin/python3.6
+#!/bin/python3
 import sys
 import re
 from pysam import VariantFile

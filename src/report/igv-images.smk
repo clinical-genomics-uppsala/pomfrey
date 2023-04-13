@@ -32,7 +32,7 @@ rule makePassVCF:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
+        "(python3 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
         "{input.hemato} {output} ) &>{log}"
 
 
@@ -75,7 +75,7 @@ rule createBatFile:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
+        "(python3 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
         "{params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
 
 

@@ -1,4 +1,4 @@
-#!/bin/python3.6
+#!/bin/python3
 import sys
 import csv
 from pysam import VariantFile
