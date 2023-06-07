@@ -50,7 +50,7 @@ rule filterVep:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3.6 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
+        "(python3 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
 
 
 rule bgzipSNV:

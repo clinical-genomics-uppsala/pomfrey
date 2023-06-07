@@ -1,4 +1,4 @@
-#!/bin/python3.6
+#!/bin/python3
 import sys
 import csv
 from pysam import VariantFile
@@ -45,11 +45,20 @@ def file_length(fname):
     return i + 1
 
 
-shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CDKN2A', 'CEBPA',
-                  'CSF3R', 'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS',
-                  'HRAS', 'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1',
-                  'NOTCH1', 'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L',
-                  'SETBP1', 'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'STAT3', 'STAT5B', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+def float_or_na(value):
+    return float(value) if value != '' else None
+
+
+def int_or_na(value):
+    return int(value) if value != '' else None
+
+
+shortListGenes = ['ABL1', 'ANKRD26', 'ASXL1', 'ATRX', 'BCOR', 'BCORL1', 'BRAF', 'CALR', 'CBL', 'CBLB', 'CDKN2A', 'CEBPA', 'CSF3R',
+                  'CUX1', 'DDX41', 'DNMT3A', 'ETV6', 'ETNK1', 'TEL', 'EZH2', 'FBXW7', 'FLT3', 'GATA1', 'GATA2', 'GNAS', 'HRAS',
+                  'IDH1', 'IDH2', 'IKZF1', 'JAK2', 'JAK3', 'KDM6A', 'KIT', 'KRAS', 'KMT2A', 'MPL', 'MYD88', 'NF1', 'NOTCH1',
+                  'NPM1', 'NRAS', 'PDGFRA', 'PHF6', 'PPM1D', 'PTEN', 'PTPN11', 'RAD21', 'RUNX1', 'SAMD9', 'SAMD9L', 'SETBP1',
+                  'SF3B1', 'SMC1A', 'SMC3', 'SRSF2', 'STAG2', 'STAT3', 'STAT5B', 'TET2', 'TP53', 'U2AF1', 'WT1', 'ZRSR2']
+
 
 intronDict = {'GATA2': ['chr3', 128201827,  128202419],
               'TERC': ['chr3', 169482182, 169483654],
@@ -233,7 +242,7 @@ for record in vcf_snv.fetch():
         if 'splice' in consequence:
             spliceVariant = True
 
-    if (record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant) and af >= 0.03:
+    if (record.filter.keys() == ["PASS"] or synoCosmicN != 0 or spliceVariant) and af >= 0.01:
         # Total number of cosmic hemato hits on the position. Vep reports all cosmicId for that position.
         cosmicVepList = [cosmic for cosmic in existing if cosmic.startswith('CO')]
         if len(cosmicVepList) == 0:
@@ -441,6 +450,41 @@ with open(snakemake.input.gatk_seg, 'r') as GATK_file:
             cnv_lines.append([sample, geneString, chrom, str(start_pos)+'-'+str(end_pos), cytoCoordString, str(sample_purity),
                              '', '', str(round(logRatio, 4)), str(copyNumberTumor)])
 
+# Process CNVkit cns file
+
+chromosomes = ['chr'+str(i) for i in range(1, 23)]+['chrX', 'chrY']
+relevant_cnvs = {i: [] for i in chromosomes}
+relevant_cnvs_header = ['Sample', 'Chromosome', 'Start', 'End', 'CytoCoordinates', 'Log2',
+                        'CI high', 'CI low', 'BAF', 'Copy Number',
+                        'Copies Allele 1', 'Copies Allele 2', 'Depth', 'Probes', 'Weight', 'Genes']
+with open(snakemake.input.cnvkit_calls, 'r+') as cnsfile:
+    cns_header = next(cnsfile).rstrip().split("\t")
+    for cnv_line in cnsfile:
+        cnv = cnv_line.strip().split("\t")
+        if not (cnv[cns_header.index('cn')] == '2' and cnv[cns_header.index('cn1')] == '1'):
+            cnv_chr = cnv[cns_header.index('chromosome')]
+            cnv_start = int(cnv[cns_header.index('start')])
+            cnv_end = int(cnv[cns_header.index('end')])
+    #        import pdb; pdb.set_trace()
+            cnv_baf = float_or_na(cnv[cns_header.index('baf')])
+            cytoCoord = ['', '']
+            for chrBand in chrBands:
+                if chrBand[0] == cnv_chr:
+                    if (cnv_start >= int(chrBand[1]) and cnv_start <= int(chrBand[2])):
+                        cytoCoord[0] = chrBand[3]
+                    if (cnv_end >= int(chrBand[1]) and cnv_end <= int(chrBand[2])):
+                        cytoCoord[1] = chrBand[3]
+            if cytoCoord[0] == cytoCoord[1]:
+                cytoCoordString = cnv_chr[3:]+cytoCoord[0]
+            else:
+                cytoCoordString = cnv_chr[3:]+cytoCoord[0]+'-'+cytoCoord[1]
+            outline = [sample, cnv_chr, cnv_start, cnv_end, cytoCoordString, float(cnv[cns_header.index('log2')]),
+                       float(cnv[cns_header.index('ci_hi')]), float(cnv[cns_header.index('ci_lo')]), cnv_baf,
+                       cnv[cns_header.index('cn')], int_or_na(cnv[cns_header.index('cn1')]),
+                       int_or_na(cnv[cns_header.index('cn2')]), cnv[cns_header.index('depth')],
+                       cnv[cns_header.index('probes')], cnv[cns_header.index('weight')], str(cnv[cns_header.index('gene')])]
+            relevant_cnvs[cnv_chr].append(outline)
+
 
 ''' Xlsx sheets '''
 workbook = xlsxwriter.Workbook(snakemake.output[0])
@@ -449,7 +493,8 @@ worksheetShortList = workbook.add_worksheet('ShortList')
 worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')
 worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
-worksheetCNV = workbook.add_worksheet('CNV')
+worksheetCNV = workbook.add_worksheet('CNV GATK')
+worksheetCNVkit = workbook.add_worksheet('CNVkit')
 worksheetLowCov = workbook.add_worksheet('Low Coverage')
 worksheetHotspot = workbook.add_worksheet('Hotspot')
 worksheetCov = workbook.add_worksheet('Coverage')
@@ -485,49 +530,50 @@ worksheetOver.write_url(8, 0, "internal:'ShortList'!A1", string='Variants in gen
 worksheetOver.write_url(9, 0, "internal:'SNVs'!A1", string='Variants analysis')
 worksheetOver.write_url(10, 0, "internal:'Indel'!A1", string='Indel variants')
 worksheetOver.write_url(11, 0, "internal:'Intron & Synonymous'!A1", string='Intron & synonymous variants')
-worksheetOver.write_url(12, 0, "internal:'CNV'!A1", string='CNVs found with GATK4')
-worksheetOver.write_url(13, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
-worksheetOver.write_url(14, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
-worksheetOver.write_url(15, 0, "internal:'Coverage'!A1", string='Average coverage of all regions in bed')
-worksheetOver.write_url(16, 0, "internal:'Version'!A1", string='Version Log')
-worksheetOver.write_row(17, 0, emptyList, lineFormat)
+worksheetOver.write_url(12, 0, "internal:'CNV GATK'!A1", string='CNVs found with GATK4')
+worksheetOver.write_url(13, 0, "internal:'CNVkit'!A1", string='CNVs found with CNVkit')
+worksheetOver.write_url(14, 0, "internal:'Low Coverage'!A1", string='Positions with coverage lower than '+str(min_cov)+'x')
+worksheetOver.write_url(15, 0, "internal:'Hotspot'!A1", string='Coverage of hotspot positions')
+worksheetOver.write_url(16, 0, "internal:'Coverage'!A1", string='Average coverage of all regions in bed')
+worksheetOver.write_url(17, 0, "internal:'Version'!A1", string='Version Log')
+worksheetOver.write_row(18, 0, emptyList, lineFormat)
 
 avgCov = extractMatchingLines("total_region", snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 duplicateLevel = extractMatchingLines('PERCENT', snakemake.input.picard_dup, '-A1').split('\n')[-1].split('\t')[8]
 with open(snakemake.input.mosdepth_thresh_summary) as threshold_summary:
     thresholds = threshold_summary.read().strip().split("\t")
 
-worksheetOver.write_row(19, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
+worksheetOver.write_row(20, 0, ['RunID', 'DNAnr', 'Avg. coverage [x]', 'Duplicationlevel [%]',
                                 str(min_cov)+'x', str(med_cov)+'x', str(max_cov)+'x'], tableHeadFormat)
-worksheetOver.write_row(20, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2)),
+worksheetOver.write_row(21, 0, [runid, sample, avgCov, str(round(float(duplicateLevel)*100, 2)),
                                 str(thresholds[0]), str(thresholds[1]), str(thresholds[2])])
 
 if low_pos == 0:  # From Hotspot sheet
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
-    worksheetOver.write(24, 0, str(low_pos))
+    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(25, 0, str(low_pos))
 else:
-    worksheetOver.write(23, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
-    worksheetOver.write(24, 0, str(low_pos), redFormat)
-    worksheetOver.write_url(25, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
+    worksheetOver.write(24, 0, 'Number of positions from the hotspot list not covered by at least '+str(med_cov)+'x: ')
+    worksheetOver.write(25, 0, str(low_pos), redFormat)
+    worksheetOver.write_url(26, 0, "internal:'Hotspot'!A1", string='For more detailed list see hotspotsheet ')
 
-worksheetOver.write(26, 0, 'Number of regions not covered by at least '+str(min_cov)+'x: ')
-worksheetOver.write(27, 0, str(low_regions))  # From low cov sheet
+worksheetOver.write(27, 0, 'Number of regions not covered by at least '+str(min_cov)+'x: ')
+worksheetOver.write(28, 0, str(low_regions))  # From low cov sheet
 
 cov_chrX = extractMatchingLines('chrX_region', snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 cov_chrY = extractMatchingLines('chrY_region', snakemake.input.mosdepth_summary, '-wE').split('\t')[3]
 
-worksheetOver.write(29, 0, 'Average coverage of region in bedfile:', tableHeadFormat)
-worksheetOver.write_row(30, 0, ['chrX', cov_chrX])
-worksheetOver.write_row(31, 0, ['chrY', cov_chrY])
+worksheetOver.write(30, 0, 'Average coverage of region in bedfile:', tableHeadFormat)
+worksheetOver.write_row(31, 0, ['chrX', cov_chrX])
+worksheetOver.write_row(32, 0, ['chrY', cov_chrY])
 
 
-worksheetOver.write(33, 0, 'Bedfile: ' + snakemake.input.bedfile)
-worksheetOver.write(34, 0, 'Hotspotlist: ' + snakemake.input.hotspot)
-worksheetOver.write(35, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
-worksheetOver.write(36, 0, 'Germline file: ' + snakemake.input.germline)
-worksheetOver.write(37, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
-worksheetOver.write(38, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
-
+worksheetOver.write(34, 0, 'Bedfile: ' + snakemake.input.bedfile)
+worksheetOver.write(35, 0, 'Hotspotlist: ' + snakemake.input.hotspot)
+worksheetOver.write(36, 0, 'Artefact file: ' + snakemake.input.artefact_snv)
+worksheetOver.write(37, 0, 'Germline file: ' + snakemake.input.germline)
+worksheetOver.write(38, 0, 'Bedfile for pindel: ' + snakemake.input.bedfile_pindel)
+worksheetOver.write(39, 0, 'Pindel artefact file: ' + snakemake.input.artefact_pindel)
+worksheetOver.write(40, 0, 'CNVkit artefact file: ' + snakemake.input.cnvkit_artefact)
 
 # Reported variants
 tableheading = ['RunID', 'DNAnr', 'Gene', 'Chr', 'Pos', 'Ref', 'Alt', 'AF', 'DP', 'Transcript', 'Mutation cds', 'ENSP',
@@ -587,7 +633,7 @@ worksheetSNV.write('B12', 'Consequence not deemed relevant')
 worksheetSNV.write('A14', 'Coverage below '+str(med_cov)+'x', italicFormat)
 worksheetSNV.write('A15', 'Variant in artefact list ', orangeFormat)
 worksheetSNV.write('A16', 'Variant likely germline', greenFormat)
-worksheetSNV.write('A17', 'Variants with frequency 0.03 <= AF < 0.05 are located below artefact and germline variants.')
+worksheetSNV.write('A17', 'Variants with frequency 0.01 <= AF < 0.05 are located below artefact and germline variants.')
 worksheetSNV.write_row('A19', tableheading, tableHeadFormat)  # 1 index
 row = 19  # 0 index
 col = 0
@@ -733,7 +779,7 @@ for line in synoFound:
         worksheetIntron.write_row(row, col, line)
         row += 1
 
-# CNV
+# CNV GATK
 worksheetCNV.conditional_format('G43:G70', {'type': 'cell', 'criteria': 'between',
                                             'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
 worksheetCNV.conditional_format('I43:I70', {'type': 'cell', 'criteria': 'between',
@@ -765,6 +811,65 @@ for line in cnv_lines:
     worksheetCNV.write_number(row, 8, float(line[8]))  # log2CR
     worksheetCNV.write_number(row, 9, float(line[9]))  # CN
     row += 1
+
+# CNVkit
+worksheetCNVkit.set_column('C:D', 10)
+worksheetCNVkit.set_column('B:B', 12)
+worksheetCNVkit.set_column('E:E', 15)
+
+worksheetCNVkit.write('A1', 'CNVkit calls', headingFormat)
+worksheetCNVkit.write('A3', 'Sample: '+str(sample))
+worksheetCNVkit.write('A5', 'Only non-diploid calls or calls with allelic imbalance included')
+worksheetCNVkit.write('A7', 'Variant in artefact list ', orangeFormat)
+
+worksheetCNVkit.insert_image('A9', snakemake.input.cnvkit_scatter)
+
+worksheetCNVkit.write_row('A31', relevant_cnvs_header, tableHeadFormat)
+row = 31
+col = 0
+for chromosome in chromosomes:
+    for line in relevant_cnvs[chromosome]:
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+            worksheetCNVkit.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVkit.write_row(row, col, line)
+            row += 1
+
+
+relevant_chroms = [key for key, value in relevant_cnvs.items() if value != []]
+row = row+2
+worksheetCNVkit.write(row, col, 'Results per chromosome with aberrant calls',
+                      workbook.add_format({'bold': True, 'font_size': 14}))
+row = row+1
+
+for i in relevant_chroms:
+    if i == 'chrX':
+        chr_int = 22
+    elif i == 'chrY':
+        chr_int = 23
+    else:
+        chr_int = int(i.replace('chr', ''))-1
+    worksheetCNVkit.write(row, col, str(i),  workbook.add_format({'bold': True, 'font_size': 14}))
+    row += 1
+    worksheetCNVkit.insert_image(row, col, snakemake.input.cnvkit_scatter_perchr[chr_int])
+    row += 22
+    worksheetCNVkit.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
+    row += 1
+    for line in relevant_cnvs[i]:
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+            worksheetCNVkit.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVkit.write_row(row, col, line)
+            row += 1
+    row = row+2
 
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
