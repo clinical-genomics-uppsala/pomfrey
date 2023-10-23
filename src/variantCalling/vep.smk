@@ -43,14 +43,12 @@ rule filterVep:
         vcf="variantCalls/annotation/raw/{sample}_{seqID}.raw.vcf.gz",
     output:
         temp("variantCalls/annotation/{sample}_{seqID}.filt.vcf"),
-    params:
-        config["programdir"]["dir"],
     log:
         "logs/variantCalling/vep/filter/{sample}_{seqID}.log",
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
+        "(python3 filter_vcf.py {input.vcf} {output}) &> {log}"
 
 
 rule bgzipSNV:

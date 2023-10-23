@@ -48,14 +48,13 @@ rule filter_recall:
     output:
         "variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz",
     params:
-        dir=config["programdir"]["dir"],
         indelArte=config["bed"]["indelartefact"],
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.filter_recall.log",
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3 {params.dir}/src/variantCalling/filter_recall.py {input} {output} {params.indelArte}) &> {log}"
+        "(python3 filter_recall.py {input} {output} {params.indelArte}) &> {log}"
 
 
 rule index_filterRecall:
