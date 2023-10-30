@@ -493,6 +493,7 @@ worksheetShortList = workbook.add_worksheet('ShortList')
 worksheetSNV = workbook.add_worksheet('SNVs')
 worksheetIndel = workbook.add_worksheet('InDel')
 worksheetIntron = workbook.add_worksheet('Intron & Synonymous')
+worksheetCNVshort = workbook.add_worksheet('CNV ShortList')
 worksheetCNV = workbook.add_worksheet('CNV GATK')
 worksheetCNVkit = workbook.add_worksheet('CNVkit')
 worksheetLowCov = workbook.add_worksheet('Low Coverage')
@@ -779,6 +780,7 @@ for line in synoFound:
         worksheetIntron.write_row(row, col, line)
         row += 1
 
+
 # CNV GATK
 worksheetCNV.conditional_format('G43:G70', {'type': 'cell', 'criteria': 'between',
                                             'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
@@ -871,6 +873,71 @@ for i in relevant_chroms:
             row += 1
     row = row+2
 
+
+# CNV shortlist
+worksheetCNVshort.set_column('C:D', 10)
+worksheetCNVshort.set_column('B:B', 12)
+worksheetCNVshort.set_column('E:E', 15)
+worksheetCNVshort.set_column('V:V', 23)
+worksheetCNVshort.set_column('W:W', 15)
+
+worksheetCNVshort.write('A1', 'CNV ShortList', headingFormat)
+worksheetCNVshort.write('A3', 'Sample: '+str(sample))
+worksheetCNVshort.write('A5', 'For CNVkit: Only non-diploid calls or calls with allelic imbalance included')
+worksheetCNVshort.write('A6', 'For GATK: Log2 ratio between -0.25<=x<=0.2 are marked red since they are very weak signals, '
+                        + 'and should be interpret with care.')
+worksheetCNVshort.write('A8', 'Variant in artefact list for CNVkit', orangeFormat)
+
+worksheetCNVshort.conditional_format('Y33:Y400', {'type': 'cell', 'criteria': 'between',
+                                                  'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
+worksheetCNVshort.conditional_format('AA33:AA400', {'type': 'cell', 'criteria': 'between',
+                                                    'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
+
+
+row = 11
+col = 0
+colGATK = 18
+
+worksheetCNVshort.write('A10', 'CNVkit', workbook.add_format({'bold': True, 'font_size': 16}))
+worksheetCNVshort.write('S10', 'GATK', workbook.add_format({'bold': True, 'font_size': 16}))
+
+cna_chroms = ['chr5', 'chr7', 'chr8', 'chr11', 'chr12', 'chr13', 'chr17']
+header = ['Sample', 'Genes', 'Chr', 'Region', 'CytoCoordinates', 'Purity', 'Adapted log2CopyRatio',
+          'Adapted CopyNumber', 'log2CopyRatio', 'CopyNumber']
+
+for i in cna_chroms:
+    chr_int = int(i.replace('chr', ''))-1
+    worksheetCNVshort.write(row, col, str(i),  workbook.add_format({'bold': True, 'font_size': 14}))
+    row += 1
+    worksheetCNVshort.insert_image(row, col, snakemake.input.cnvkit_scatter_perchr[chr_int])
+    row += 22
+    worksheetCNVshort.write_row(row, col, relevant_cnvs_header, tableHeadFormat)
+    worksheetCNVshort.write_row(row, colGATK, header, tableHeadFormat)
+    row += 1
+    rowminder = row
+    for line in relevant_cnvs[i]:
+        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
+                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
+                                    ' ' + str(line[11]) + '"',
+                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+            worksheetCNVshort.write_row(row, col, line, orangeFormat)
+            row += 1
+        else:
+            worksheetCNVshort.write_row(row, col, line)
+            row += 1
+    for line in cnv_lines:
+        if line[2] == i:
+            cn_formula = '= 2 + (AB'+str(rowminder+1)+'-2)*(1/X'+str(rowminder+1)+')'
+            worksheetCNVshort.write_row(rowminder, colGATK, line[0:5])
+            worksheetCNVshort.write_number(rowminder, colGATK+5, float(line[5]))  # purity
+            worksheetCNVshort.write_formula(rowminder, colGATK+6, '= LOG(AB'+str(row+1)+'/2, 2)')  # Adapted log2CR
+            worksheetCNVshort.write_formula(rowminder, colGATK+7, cn_formula)  # Adapted CN
+            worksheetCNVshort.write_number(rowminder, colGATK+8, float(line[8]))  # log2CR
+            worksheetCNVshort.write_number(rowminder, colGATK+9, float(line[9]))  # CN
+            rowminder += 1
+    row = row+2
+
+
 # Low Coverage
 worksheetLowCov.set_column(1, 3, 10)
 worksheetLowCov.set_column(1, 4, 10)
@@ -886,6 +953,7 @@ for line in low_cov_lines:
     worksheetLowCov.write_row(row, col, line)
     row += 1
 
+
 # Hotspot
 worksheetHotspot.set_column(1, 2, 10)
 worksheetHotspot.write('A1', 'Hotspot Coverage', headingFormat)
@@ -899,6 +967,7 @@ for hotLine in hotspotTable:
         worksheetHotspot.write_row(row, 0, hotLine)
     row += 1
 
+
 # Coverage
 worksheetCov.write('A1', 'Average Coverage', headingFormat)
 worksheetCov.write_row('A2', emptyList, lineFormat)
@@ -909,6 +978,7 @@ tableArea = 'A6:F'+str(len(cov_table_lines)+6)  # rows of full list
 headerListDict = [{'header': 'Region Name'}, {'header': 'Chr'}, {'header': 'Start'}, {'header': 'End'},
                   {'header': 'Avg Coverage'}]
 worksheetCov.add_table(tableArea, {'data': cov_table_lines, 'columns': headerListDict, 'style': 'Table Style Light 1'})
+
 
 # QCI
 worksheetQCI.set_column('C:C', 10)
@@ -922,6 +992,7 @@ iva = ['DNA nr', 'Chromosome', 'Position', 'Gene Region', 'Gene Symbol', 'Transc
        'dbSNP ID', '1000 Genomes Frequency', 'ExAC Frequency', 'HGMD', 'COSMIC ID', 'Artefacts_without_ASXL1',
        'ASXL1_variant_filter']
 worksheetQCI.write_row(9, 0, iva, tableHeadFormat)
+
 
 # Versions
 worksheetVersions.write('A1', 'Version Log', headingFormat)
