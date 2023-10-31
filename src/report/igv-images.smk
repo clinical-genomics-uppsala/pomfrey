@@ -23,8 +23,6 @@ rule makePassVCF:
         hemato=config["configCache"]["hemato"],
     output:
         temp("Results/{sample}_{seqID}/Reports/{sample}_{seqID}.PASS.vcf"),
-    params:
-        config["programdir"]["dir"],
     log:
         "logs/report/{sample}_{seqID}.PASS.vcf.log",
     wildcard_constraints:
@@ -32,7 +30,7 @@ rule makePassVCF:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
+        "(python3 makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
         "{input.hemato} {output} ) &>{log}"
 
 
@@ -67,7 +65,6 @@ rule createBatFile:
         sort="base",  #Type of sorting: base, position, strand, quality, sample or readgroup.
         view="squish",  #Type of view, collaps, squished...
         format="svg",  #svg, jpg
-        dir=config["programdir"]["dir"],
     log:
         "logs/report/{sample}_{seqID}-makeBat.log",
     wildcard_constraints:
@@ -75,7 +72,7 @@ rule createBatFile:
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
+        "(python3 makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
         "{params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
 
 

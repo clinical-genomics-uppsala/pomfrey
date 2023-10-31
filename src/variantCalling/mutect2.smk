@@ -146,14 +146,12 @@ rule hardFilterMutect2:
         wait="variantCalls/callers/mutect2/{sample}_{seqID}.SB.done",
     output:
         temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.weirdAF.vcf"),
-    params:
-        config["programdir"]["dir"],
     log:
         "logs/variantCalling/mutect2/hardFilter_{sample}_{seqID}.log",
     container:
         config["singularitys"]["python"]
     shell:
-        "(python3 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
+        "(python3 hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
 
 
 rule merge_bam:

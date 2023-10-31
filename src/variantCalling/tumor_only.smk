@@ -15,8 +15,6 @@ rule fixAF:
         tbi="variantCalls/callers/{method}/{sample}_{seqID}.{method}.weirdAF.vcf.gz.tbi",
     output:
         vcf=temp("variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf"),
-    params:
-        config["programdir"]["dir"],
     log:
         "logs/variantCalling/fixAF/{method}/{sample}_{seqID}.log",
     container:
