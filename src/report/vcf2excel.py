@@ -930,7 +930,7 @@ for i in cna_chroms:
             cn_formula = '= 2 + (AB'+str(rowminder+1)+'-2)*(1/X'+str(rowminder+1)+')'
             worksheetCNVshort.write_row(rowminder, colGATK, line[0:5])
             worksheetCNVshort.write_number(rowminder, colGATK+5, float(line[5]))  # purity
-            worksheetCNVshort.write_formula(rowminder, colGATK+6, '= LOG(AB'+str(row+1)+'/2, 2)')  # Adapted log2CR
+            worksheetCNVshort.write_formula(rowminder, colGATK+6, '= LOG(AB'+str(rowminder+1)+'/2, 2)')  # Adapted log2CR
             worksheetCNVshort.write_formula(rowminder, colGATK+7, cn_formula)  # Adapted CN
             worksheetCNVshort.write_number(rowminder, colGATK+8, float(line[8]))  # log2CR
             worksheetCNVshort.write_number(rowminder, colGATK+9, float(line[9]))  # CN
