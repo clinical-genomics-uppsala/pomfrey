@@ -4,11 +4,7 @@
 To run the pipeline you need Snakemake and Singularitys installed. At Uppsala it is used together with slurm-drmaa to submit on the local HPC. If Horizon Myeloid DNA Reference Standard is used it should be named HD829 to be processed separately and not hold up the pipeline.
 
 ### Files & Caches
-- **SampleSheet.csv**: A csv-file with produced when demultiplexing on Illumina machine. Is used to order samples in MultiQC table. The script only use the column *Sample_Name*. Lines needed are in the file except the actual sample-lines are:
-    ```sh
-    [Data]
-    Sample_ID,Sample_Name,Description,index,I7_Index_ID,index2,I5_Index_ID,Sample_Project
-    ```
+- **Sample Order file ({seqID}_order.tsv)**: file with list of samples (one per row) in order to be used in MultiQC
 - **Bedfile**: Four columns: chr, start, stop, regionname. No header. The bed-file is used as both target and bait intervals in picard HsMetric for bases on target stats. The fourth column is used in Mosdepth to identify low coverage regions.
 - **Pindel bedfile**: Since pindel is quite slow a smaller bedfile with limited regions is needed to run pindel.
 - **Intervals-file**: Corresponding to the bedfile for picard jobs. Can be generated in GATK4 with:
@@ -72,7 +68,7 @@ bed:
     indelartefact: "" # Path to indel artefacts since all indels from vardict and mutect2 are included
     pindelArtefact: ""  #Path to pindel artefact file
     cartool: "" #Path to (main) bedfile or different if interested in the coverage of different regions.
-    hotspot: "" #Path to hotpspotlist
+    hotspot: "" #Path to hotspotlist
     artefact: "" #Path to artefact filter file
     germline: "" #Path to germline filter file
 

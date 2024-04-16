@@ -72,17 +72,11 @@ for mosdepth_thresh_summary in snakemake.input.mosdepth_thresh_summary:
 
 startReading = 0
 samples = []
-with open(snakemake.input.samplesheet, 'r') as samplesheet:
-    lines = [line.strip() for line in samplesheet]
-    for line in lines:
-        if startReading == 1:  # Once reached [Data]
-            samples.append(line.split(',')[1])
-        elif line.startswith("[Data]"):
-            startReading = 1
-samples = samples[1:]  # Remove header from SampleSheet
-samplesheet_order = [string for string in samples if string != ""]  # Remove empty fields
+with open(snakemake.input.sample_order, "r") as ordersheet:
+    sample_order = [line.strip() for line in ordersheet]
+
 data_json_ordered = {}
-data_json_ordered["data"] = dict(sorted(data_json.items(), key=lambda sample: samplesheet_order.index(sample[0])))
+data_json_ordered["data"] = dict(sorted(data_json.items(), key=lambda sample: sample_order.index(sample[0])))
 
 
 header_json = {"headers": {
