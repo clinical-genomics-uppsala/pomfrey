@@ -55,12 +55,12 @@ rule multiqcBatch:
         "( multiqc {params.extra} --force -o {params.output_dir} -n {params.output_name} {input} ) &> {log}"
 
 
-    rule cp_multiqc:
-        input:
-            "multiqc/batchQC_{seqID}/{seqID}_MultiQC.html"
-        output:
-            "Results/{seqID}_MultiQC.html"
-        log:
-            "logs/report/multiqc_cp_{seqID}.log"
-        shell:
-            "cp -r {input.html} {output.html}"
+rule multiqc_cp:
+    input:
+        html="multiqc/batchQC_{seqID}/{seqID}_MultiQC.html",
+    output:
+        html="Results/{seqID}_MultiQC.html",
+    log:
+        "logs/report/multiqc_cp_{seqID}.log",
+    shell:
+        "cp -r {input.html} {output.html}"
