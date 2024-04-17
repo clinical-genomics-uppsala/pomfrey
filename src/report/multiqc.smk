@@ -40,12 +40,12 @@ rule multiqcBatch:
             sample=config["samples"],
             seqID=config["seqID"]["sequencerun"],
         ),
-        "Results/batchQC_{seqID}/{seqID}_stats_mqc.json",
+        "multiqc/batchQC_{seqID}/{seqID}_stats_mqc.json",
     output:
-        "Results/batchQC_{seqID}/{seqID}_MultiQC.html",
+        "multiqc/batchQC_{seqID}/{seqID}_MultiQC.html",
     params:
         extra="-c " + config["configCache"]["multiqc"] + " --ignore *_{seqID}_stats_mqc.csv",
-        output_dir="Results/batchQC_{seqID}",
+        output_dir="multiqc/batchQC_{seqID}",
         output_name="{seqID}_MultiQC.html",
     log:
         "logs/report/multiqc/{seqID}.log",
@@ -53,3 +53,14 @@ rule multiqcBatch:
         config["singularitys"]["multiqc"]
     shell:
         "( multiqc {params.extra} --force -o {params.output_dir} -n {params.output_name} {input} ) &> {log}"
+
+
+    rule cp_multiqc:
+        input:
+            "multiqc/batchQC_{seqID}/{seqID}_MultiQC.html"
+        output:
+            "Results/{seqID}_MultiQC.html"
+        log:
+            "logs/report/multiqc_cp_{seqID}.log"
+        shell:
+            "cp -r {input.html} {output.html}"
