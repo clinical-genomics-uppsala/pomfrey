@@ -1,17 +1,16 @@
 #!/bin/python3
-import sys
 from pysam import VariantFile
 
-batfile = open(sys.argv[1], 'w')
-vcf_in = VariantFile(sys.argv[2], 'r')
-bamfile = sys.argv[3]
-reffile = sys.argv[4]
-bedfile = sys.argv[5]
-outfolder = sys.argv[6]
-padding = int(sys.argv[7])
-sort = sys.argv[8]
-view = sys.argv[9]
-format = sys.argv[10]
+batfile = open(snakemake.output.bat, "w")
+vcf_in = VariantFile(snakemake.input.vcf, "r")
+bamfile = snakemake.input.bam
+reffile = snakemake.input.ref
+bedfile = snakemake.input.bed
+outfolder = snakemake.params.outfolder
+padding = int(snakemake.params.padding)
+sort = snakemake.params.sort
+view = snakemake.params.view
+format = snakemake.params.format
 
 batfile.write("new")
 batfile.write("\ngenome "+reffile)

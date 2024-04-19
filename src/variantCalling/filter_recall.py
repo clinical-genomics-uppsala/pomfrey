@@ -1,13 +1,12 @@
 #!/bin/python3
-import sys
 from pysam import VariantFile
 import subprocess
 
-vcf_in = VariantFile(sys.argv[1])
+vcf_in = VariantFile(snakemake.input.vcf)
 new_header = new_header = vcf_in.header
-vcf_out = VariantFile(sys.argv[2], 'w', header=new_header)
-sv_out = sys.argv[2]+'.svtypeDEL.txt'
-indelArteFile = sys.argv[3]
+vcf_out = VariantFile(snakemake.output.vcf, 'w', header=new_header)
+sv_out = snakemake.output.vcf+'.svtypeDEL.txt'
+indelArteFile = snakemake.params.indelArte
 
 for record in vcf_in.fetch():
     # Remove strange vardict DEL variants

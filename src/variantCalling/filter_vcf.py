@@ -1,8 +1,7 @@
 #!/bin/python3
-import sys
 from pysam import VariantFile
 
-vcf_in = VariantFile(sys.argv[1])  # dosen't matter if bgziped or not. Automatically recognizes
+vcf_in = VariantFile(snakemake.input.vcf)  # dosen't matter if bgziped or not. Automatically recognizes
 # Consequences to keep (not to filter out)
 consequences = ['transcript_ablation', 'splice_acceptor_variant', 'splice_donor_variant', 'stop_gained', 'frameshift_variant',
                 'stop_lost', 'start_lost', 'transcript_amplification', 'inframe_insertion', 'inframe_deletion',
@@ -17,7 +16,7 @@ new_header.filters.add("Conseq", None, None, "Consequence is not deemed relevant
 new_header.filters.add("Syno", None, None, "Consequence is synonymous variant")
 
 # start new vcf with the new_header
-vcf_out = VariantFile(sys.argv[2], 'w', header=new_header)
+vcf_out = VariantFile(snakemake.output.vcf, "w", header=new_header)
 
 
 for record in vcf_in.fetch():

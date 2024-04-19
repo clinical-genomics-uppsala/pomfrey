@@ -1,5 +1,4 @@
 #!/bin/python3
-import sys
 import re
 from pysam import VariantFile
 import gzip

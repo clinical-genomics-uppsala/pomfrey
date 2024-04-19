@@ -1,18 +1,17 @@
 #!/bin/python3
-import sys
 import subprocess
 from pysam import VariantFile
 
 # Define sys.argvs
-vcf_in = VariantFile(sys.argv[1])  # variatnts
-pindel_in = VariantFile(sys.argv[2])
-artefactFile = sys.argv[3]
-germlineFile = sys.argv[4]
-hematoCountFile = sys.argv[5]
+vcf_in = VariantFile(snakemake.input.vcf_snv)  # variatnts
+pindel_in = VariantFile(snakemake.input.vcf_indel)
+artefactFile = snakemake.input.artefact
+germlineFile = snakemake.input.germline
+hematoCountFile = snakemake.input.hemato
 
 new_header = vcf_in.header
 
-vcf_out = VariantFile(sys.argv[6], 'w', header=new_header)
+vcf_out = VariantFile(snakemake.output.vcf, 'w', header=new_header)
 
 for x in vcf_in.header.records:
     if 'CSQ' in str(x):

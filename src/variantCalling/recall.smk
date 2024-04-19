@@ -44,17 +44,17 @@ rule sort_recall:
 
 rule filter_recall:
     input:
-        "variantCalls/recall/{sample}_{seqID}.notMulti.all.vcf.gz",
+        vcf="variantCalls/recall/{sample}_{seqID}.notMulti.all.vcf.gz",
     output:
-        "variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz",
+        vcf="variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz",
     params:
         indelArte=config["bed"]["indelartefact"],
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.filter_recall.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 filter_recall.py {input} {output} {params.indelArte}) &> {log}"
+    script:
+        "filter_recall.py"
 
 
 rule index_filterRecall:

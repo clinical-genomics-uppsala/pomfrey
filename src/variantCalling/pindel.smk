@@ -94,15 +94,15 @@ rule fixContigPindel:
 
 rule fixPindelDPoAF:
     input:
-        "variantCalls/pindel/{sample}_{seqID}.pindel.noDP.vcf",
+        vcf="variantCalls/pindel/{sample}_{seqID}.pindel.noDP.vcf",
     output:
-        "variantCalls/pindel/{sample}_{seqID}.pindel.vcf",
+        vcf="variantCalls/pindel/{sample}_{seqID}.pindel.vcf",
     log:
         "logs/variantCalling/{sample}_{seqID}.fixDP.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 fix_pindelDPoAF.py {input} {output}) &> {log}"
+    script:
+        "fix_pindelDPoAF.py"
 
 
 rule annotatePindel:
@@ -131,13 +131,13 @@ rule filterPindel:
     input:
         vcf="variantCalls/pindel/{sample}_{seqID}.pindel.ann.vcf",
     output:
-        temp("variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf"),
+        vcf=temp("variantCalls/pindel/{sample}_{seqID}.pindel.filt.vcf"),
     log:
         "logs/variantCalling/pindel.{sample}_{seqID}.filt.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 filter_vcf.py {input.vcf} {output}) &> {log}"
+    script:
+        "filter_vcf.py"
 
 
 rule bgzipPindel:
