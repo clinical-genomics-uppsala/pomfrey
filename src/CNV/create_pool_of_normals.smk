@@ -1,7 +1,3 @@
-localrules:
-    createReadCountPanelOfNormals,
-
-
 rule all:
     input:
         "Normals/GATK4/readCountPoN.hdf5",

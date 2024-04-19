@@ -1,8 +1,3 @@
-localrules:
-    sort_recall,
-    createMultiVcf,
-
-
 rule recall:
     input:
         vcfs=expand("variantCalls/callers/{method}/{{sample}}_{{seqID}}.{method}.normalized.vcf.gz", method=config["methods"]),

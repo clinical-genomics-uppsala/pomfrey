@@ -1,8 +1,3 @@
-localrules:
-    split_bedfile,
-    fixSB,
-
-
 chrom_list = [
     "chr1",
     "chr2",

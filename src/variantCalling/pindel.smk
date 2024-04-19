@@ -1,11 +1,3 @@
-localrules:
-    fixContigPindel,
-    pindelConf,
-    fixPindelDPoAF,
-    filterPindel,
-    bgzipPindel,
-
-
 rule pindelConf:
     input:
         bam="Results/{sample}_{seqID}/Data/{sample}_{seqID}-dedup.bam",

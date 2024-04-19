@@ -1,7 +1,3 @@
-localrules:
-    fixAF,
-
-
 include: "freebayes.smk"
 include: "vardict_T.smk"
 include: "pisces.smk"
