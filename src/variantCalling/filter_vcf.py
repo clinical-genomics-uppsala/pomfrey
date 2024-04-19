@@ -3,10 +3,24 @@ from pysam import VariantFile
 
 vcf_in = VariantFile(snakemake.input.vcf)  # dosen't matter if bgziped or not. Automatically recognizes
 # Consequences to keep (not to filter out)
-consequences = ['transcript_ablation', 'splice_acceptor_variant', 'splice_donor_variant', 'stop_gained', 'frameshift_variant',
-                'stop_lost', 'start_lost', 'transcript_amplification', 'inframe_insertion', 'inframe_deletion',
-                'missense_variant', 'protein_altering_variant', 'splice_region_variant', 'incomplete_terminal_codon_variant',
-                'coding_sequence_variant', 'mature_miRNA_variant']
+consequences = [
+    "transcript_ablation",
+    "splice_acceptor_variant",
+    "splice_donor_variant",
+    "stop_gained",
+    "frameshift_variant",
+    "stop_lost",
+    "start_lost",
+    "transcript_amplification",
+    "inframe_insertion",
+    "inframe_deletion",
+    "missense_variant",
+    "protein_altering_variant",
+    "splice_region_variant",
+    "incomplete_terminal_codon_variant",
+    "coding_sequence_variant",
+    "mature_miRNA_variant",
+]
 # Add new filter descriptions to new header
 new_header = vcf_in.header
 new_header.filters.add("PopAF", None, None, "Population AF over two percent")
@@ -42,9 +56,9 @@ for record in vcf_in.fetch():
     for csq in record.info["CSQ"]:
         vep = csq.split("|")
         # Filter out not protein_coding
-        if vep[7] == 'protein_coding':  # What if protein_coding&...?
+        if vep[7] == "protein_coding":  # What if protein_coding&...?
             bioType = 1
-            if 'synonymous_variant' in vep[1]:
+            if "synonymous_variant" in vep[1]:
                 record.filter.add("Syno")
             if any(x in vep[1] for x in consequences):
                 conseq = 1  # Ok consequnce, no filter
@@ -54,10 +68,9 @@ for record in vcf_in.fetch():
     if conseq == 0:  # if not wanted consequences
         record.filter.add("Conseq")
 
-
-# Filter based on BIOTYPE? exon, intron splice... splice_region_variant intron_variant
-# BIOTYPE 7: protein_coding
-# Consequence 1: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html#consequences
+    # Filter based on BIOTYPE? exon, intron splice... splice_region_variant intron_variant
+    # BIOTYPE 7: protein_coding
+    # Consequence 1: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html#consequences
     vcf_out.write(record)
 
 
