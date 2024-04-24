@@ -25,9 +25,9 @@ rule getStatsforMqc:
             sample=config["samples"],
             seqID=config["seqID"]["sequencerun"],
         ),
-        samplesheet="SampleSheet.csv",
+        sample_order="{seqID}_order.tsv",
     output:
-        json="Results/batchQC_{seqID}/{seqID}_stats_mqc.json",
+        json="multiqc/batchQC_{seqID}/{seqID}_stats_mqc.json",
     params:
         thresholds=config["misc"]["cov_thresholds"],
     log:

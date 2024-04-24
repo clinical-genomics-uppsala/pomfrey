@@ -1,10 +1,3 @@
-localrules:
-    piscesFix,
-    sortPisces,
-    gVCFfinalIndex,
-    renameSample,
-
-
 from os.path import dirname
 
 

@@ -1,0 +1,24 @@
+{
+    "__default__": {
+        "queue": "core",
+        "time": "1:00:00",
+        "partition": "core",
+        "n": "1",
+    },
+    "fastqc": {"time": "3:00:00"},
+    "cartool": {"time": "2:00:00"},
+    "cutadapt": {"time": "3:00:00", "n": "10"},
+    "bwa_mem": {"time": "8:00:00", "n": "10"},
+    "markDuplicates": {"n": "5"},
+    "pindel": {"time": "5:00:00", "n": "5"},
+    "Mutect2": {"time":"2:00:00"},
+    "vardict": {"time":"5:00:00", "n": "5"},
+    "freebayes": {"time": "8:00:00"},
+    "snver": {"time": "8:00:00"},
+    "normalizeAll": {"time":"5:00:00"},
+    "pisces": {"time":"8:00:00"},
+    "vep": {"time":"2:00:00", "n": "10"},
+    "annotatePindel": {"time": "2:00:00", "n": "10"},
+    "igv": {"n": "2", "time":"2:00:00"},
+    "cnvKitBatch": {"time":"8:00:00", "n":"10"}
+}

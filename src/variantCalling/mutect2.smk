@@ -1,8 +1,3 @@
-localrules:
-    split_bedfile,
-    fixSB,
-
-
 chrom_list = [
     "chr1",
     "chr2",
@@ -145,15 +140,13 @@ rule hardFilterMutect2:
         vcf="variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.SB.vcf",
         wait="variantCalls/callers/mutect2/{sample}_{seqID}.SB.done",
     output:
-        temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.weirdAF.vcf"),
-    params:
-        config["programdir"]["dir"],
+        vcf=temp("variantCalls/callers/mutect2/{sample}_{seqID}.mutect2.weirdAF.vcf"),
     log:
         "logs/variantCalling/mutect2/hardFilter_{sample}_{seqID}.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 {params}/src/variantCalling/hardFilter_mutect2.py {input.vcf} {output}) &> {log}"
+    script:
+        "hardFilter_mutect2.py"
 
 
 rule merge_bam:
