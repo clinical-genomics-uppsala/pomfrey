@@ -112,8 +112,8 @@ for record in vcf_snv.fetch():
         codingName = ""
     ensp = csq[csqIndex.index("HGVSp")]
 
-    popFreqsPop = csqIndex[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
-    popFreqAllRaw = csq[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
+    popFreqsPop = csqIndex[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
+    popFreqAllRaw = csq[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
     if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
         popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
         maxPopAf = max(popFreqAll)
@@ -258,8 +258,8 @@ for indel in vcf_indel.fetch():
         indelGene = csqIndel[csqIndex.index("SYMBOL")]
 
         # Not using ExAC pop
-        popFreqsPop = csqIndex[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
-        popFreqAllRawIndel = csqIndel[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
+        popFreqsPop = csqIndex[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
+        popFreqAllRawIndel = csqIndel[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
         if any(popFreqAllRawIndel) and max([float(x) if x else 0 for x in popFreqAllRawIndel]) != 0:  # if all not empty
             popFreqAllIndel = [float(x) if x else 0 for x in popFreqAllRawIndel]
             maxPopAfIndel = max(popFreqAllIndel)

@@ -267,8 +267,8 @@ for record in vcf_snv.fetch():
         codingName = ""
     ensp = csq[csqIndex.index("HGVSp")]
 
-    popFreqsPop = csqIndex[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
-    popFreqAllRaw = csq[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
+    popFreqsPop = csqIndex[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
+    popFreqAllRaw = csq[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
     if any(popFreqAllRaw) and max([float(x) if x else 0 for x in popFreqAllRaw]) != 0:  # if all not empty
         popFreqAll = [float(x) if x else 0 for x in popFreqAllRaw]
         maxPopAf = max(popFreqAll)
@@ -478,8 +478,8 @@ for indel in vcf_indel.fetch():
         indelGene = csqIndel[csqIndex.index("SYMBOL")]
 
         # Not using ExAC pop
-        popFreqsPop = csqIndex[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
-        popFreqAllRawIndel = csqIndel[csqIndex.index("AF") : csqIndex.index("gnomAD_SAS_AF") + 1]
+        popFreqsPop = csqIndex[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
+        popFreqAllRawIndel = csqIndel[csqIndex.index("AF"): csqIndex.index("gnomAD_SAS_AF") + 1]
         if any(popFreqAllRawIndel) and max([float(x) if x else 0 for x in popFreqAllRawIndel]) != 0:  # if all not empty
             popFreqAllIndel = [float(x) if x else 0 for x in popFreqAllRawIndel]
             maxPopAfIndel = max(popFreqAllIndel)
@@ -1197,39 +1197,54 @@ for i in relevant_chroms:
 
 
 # CNV shortlist
-worksheetCNVshort.set_column('C:D', 10)
-worksheetCNVshort.set_column('B:B', 12)
-worksheetCNVshort.set_column('E:E', 15)
-worksheetCNVshort.set_column('V:V', 23)
-worksheetCNVshort.set_column('W:W', 15)
+worksheetCNVshort.set_column("C:D", 10)
+worksheetCNVshort.set_column("B:B", 12)
+worksheetCNVshort.set_column("E:E", 15)
+worksheetCNVshort.set_column("V:V", 23)
+worksheetCNVshort.set_column("W:W", 15)
 
-worksheetCNVshort.write('A1', 'CNV ShortList', headingFormat)
-worksheetCNVshort.write('A3', 'Sample: '+str(sample))
-worksheetCNVshort.write('A5', 'For CNVkit: Only non-diploid calls or calls with allelic imbalance included')
-worksheetCNVshort.write('A6', 'For GATK: Log2 ratio between -0.25<=x<=0.2 are marked red since they are very weak signals, '
-                        + 'and should be interpret with care.')
-worksheetCNVshort.write('A8', 'Variant in artefact list for CNVkit', orangeFormat)
+worksheetCNVshort.write("A1", "CNV ShortList", headingFormat)
+worksheetCNVshort.write("A3", "Sample: " + str(sample))
+worksheetCNVshort.write("A5", "For CNVkit: Only non-diploid calls or calls with allelic imbalance included")
+worksheetCNVshort.write(
+    "A6",
+    "For GATK: Log2 ratio between -0.25<=x<=0.2 are marked red since they are very weak signals, "
+    + "and should be interpret with care.",
+)
+worksheetCNVshort.write("A8", "Variant in artefact list for CNVkit", orangeFormat)
 
-worksheetCNVshort.conditional_format('Y33:Y400', {'type': 'cell', 'criteria': 'between',
-                                                  'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
-worksheetCNVshort.conditional_format('AA33:AA400', {'type': 'cell', 'criteria': 'between',
-                                                    'minimum': -0.25, 'maximum':  0.2, 'format':   redFormat})
+worksheetCNVshort.conditional_format(
+    "Y33:Y400", {"type": "cell", "criteria": "between", "minimum": -0.25, "maximum": 0.2, "format": redFormat}
+)
+worksheetCNVshort.conditional_format(
+    "AA33:AA400", {"type": "cell", "criteria": "between", "minimum": -0.25, "maximum": 0.2, "format": redFormat}
+)
 
 
 row = 11
 col = 0
 colGATK = 18
 
-worksheetCNVshort.write('A10', 'CNVkit', workbook.add_format({'bold': True, 'font_size': 16}))
-worksheetCNVshort.write('S10', 'GATK', workbook.add_format({'bold': True, 'font_size': 16}))
+worksheetCNVshort.write("A10", "CNVkit", workbook.add_format({"bold": True, "font_size": 16}))
+worksheetCNVshort.write("S10", "GATK", workbook.add_format({"bold": True, "font_size": 16}))
 
-cna_chroms = ['chr5', 'chr7', 'chr8', 'chr11', 'chr12', 'chr13', 'chr17']
-header = ['Sample', 'Genes', 'Chr', 'Region', 'CytoCoordinates', 'Purity', 'Adapted log2CopyRatio',
-          'Adapted CopyNumber', 'log2CopyRatio', 'CopyNumber']
+cna_chroms = ["chr5", "chr7", "chr8", "chr11", "chr12", "chr13", "chr17"]
+header = [
+    "Sample",
+    "Genes",
+    "Chr",
+    "Region",
+    "CytoCoordinates",
+    "Purity",
+    "Adapted log2CopyRatio",
+    "Adapted CopyNumber",
+    "log2CopyRatio",
+    "CopyNumber",
+]
 
 for i in cna_chroms:
-    chr_int = int(i.replace('chr', ''))-1
-    worksheetCNVshort.write(row, col, str(i),  workbook.add_format({'bold': True, 'font_size': 14}))
+    chr_int = int(i.replace("chr", "")) - 1
+    worksheetCNVshort.write(row, col, str(i), workbook.add_format({"bold": True, "font_size": 14}))
     row += 1
     worksheetCNVshort.insert_image(row, col, snakemake.input.cnvkit_scatter_perchr[chr_int])
     row += 22
@@ -1238,10 +1253,28 @@ for i in cna_chroms:
     row += 1
     rowminder = row
     for line in relevant_cnvs[i]:
-        if len(extractMatchingLines('"' + str(line[1]) + ' ' + str(line[2]) + ' ' +
-                                    str(line[3]) + ' ' + str(line[9]) + ' ' + str(line[10]) +
-                                    ' ' + str(line[11]) + '"',
-                                    snakemake.input.cnvkit_artefact, '-wE')) > 0:
+        if (
+            len(
+                extractMatchingLines(
+                    '"'
+                    + str(line[1])
+                    + " "
+                    + str(line[2])
+                    + " "
+                    + str(line[3])
+                    + " "
+                    + str(line[9])
+                    + " "
+                    + str(line[10])
+                    + " "
+                    + str(line[11])
+                    + '"',
+                    snakemake.input.cnvkit_artefact,
+                    "-wE",
+                )
+            )
+            > 0
+        ):
             worksheetCNVshort.write_row(row, col, line, orangeFormat)
             row += 1
         else:
@@ -1249,15 +1282,15 @@ for i in cna_chroms:
             row += 1
     for line in cnv_lines:
         if line[2] == i:
-            cn_formula = '= 2 + (AB'+str(rowminder+1)+'-2)*(1/X'+str(rowminder+1)+')'
+            cn_formula = "= 2 + (AB" + str(rowminder + 1) + "-2)*(1/X" + str(rowminder + 1) + ")"
             worksheetCNVshort.write_row(rowminder, colGATK, line[0:5])
-            worksheetCNVshort.write_number(rowminder, colGATK+5, float(line[5]))  # purity
-            worksheetCNVshort.write_formula(rowminder, colGATK+6, '= LOG(AB'+str(row+1)+'/2, 2)')  # Adapted log2CR
-            worksheetCNVshort.write_formula(rowminder, colGATK+7, cn_formula)  # Adapted CN
-            worksheetCNVshort.write_number(rowminder, colGATK+8, float(line[8]))  # log2CR
-            worksheetCNVshort.write_number(rowminder, colGATK+9, float(line[9]))  # CN
+            worksheetCNVshort.write_number(rowminder, colGATK + 5, float(line[5]))  # purity
+            worksheetCNVshort.write_formula(rowminder, colGATK + 6, "= LOG(AB" + str(row + 1) + "/2, 2)")  # Adapted log2CR
+            worksheetCNVshort.write_formula(rowminder, colGATK + 7, cn_formula)  # Adapted CN
+            worksheetCNVshort.write_number(rowminder, colGATK + 8, float(line[8]))  # log2CR
+            worksheetCNVshort.write_number(rowminder, colGATK + 9, float(line[9]))  # CN
             rowminder += 1
-    row = row+2
+    row = row + 2
 
 
 # Low Coverage
