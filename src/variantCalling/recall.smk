@@ -1,8 +1,3 @@
-localrules:
-    sort_recall,
-    createMultiVcf,
-
-
 rule recall:
     input:
         vcfs=expand("variantCalls/callers/{method}/{{sample}}_{{seqID}}.{method}.normalized.vcf.gz", method=config["methods"]),
@@ -44,18 +39,17 @@ rule sort_recall:
 
 rule filter_recall:
     input:
-        "variantCalls/recall/{sample}_{seqID}.notMulti.all.vcf.gz",
+        vcf="variantCalls/recall/{sample}_{seqID}.notMulti.all.vcf.gz",
     output:
-        "variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz",
+        vcf="variantCalls/recall/{sample}_{seqID}.notMulti.vcf.gz",
     params:
-        dir=config["programdir"]["dir"],
         indelArte=config["bed"]["indelartefact"],
     log:
         "logs/variantCalling/recall/{sample}_{seqID}.filter_recall.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 {params.dir}/src/variantCalling/filter_recall.py {input} {output} {params.indelArte}) &> {log}"
+    script:
+        "filter_recall.py"
 
 
 rule index_filterRecall:

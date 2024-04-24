@@ -45,7 +45,7 @@ rule all:
             sample=config["samples"],
             seqID=config["seqID"]["sequencerun"],
         ),
-        expand("Results/batchQC_{seqID}/{seqID}_MultiQC.html", seqID=config["seqID"]["sequencerun"]),
+        expand("Results/{seqID}_MultiQC.html", seqID=config["seqID"]["sequencerun"]),
         expand(
             "CNV/{sample}_{seqID}_clean.calledCNVs.modeled.png",
             sample=config["samples"],

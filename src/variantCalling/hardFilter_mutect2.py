@@ -1,9 +1,9 @@
 #!/bin/python3
-import sys
+
 from pysam import VariantFile
 
-vcf_in = VariantFile(sys.argv[1])
-vcf_out = VariantFile(sys.argv[2], 'w', header=vcf_in.header)
+vcf_in = VariantFile(snakemake.input.vcf)
+vcf_out = VariantFile(snakemake.output.vcf, "w", header=vcf_in.header)
 
 for record in vcf_in.fetch():
     if record.filter.keys() == ["PASS"]:

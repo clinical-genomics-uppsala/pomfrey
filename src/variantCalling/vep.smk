@@ -1,9 +1,3 @@
-localrules:
-    bgzipVep,
-    filterVep,
-    bgzipSNV,
-
-
 rule vep:
     input:
         vcf="variantCalls/recall/{sample}_{seqID}.vcf.gz",
@@ -42,15 +36,13 @@ rule filterVep:
     input:
         vcf="variantCalls/annotation/raw/{sample}_{seqID}.raw.vcf.gz",
     output:
-        temp("variantCalls/annotation/{sample}_{seqID}.filt.vcf"),
-    params:
-        config["programdir"]["dir"],
+        vcf=temp("variantCalls/annotation/{sample}_{seqID}.filt.vcf"),
     log:
         "logs/variantCalling/vep/filter/{sample}_{seqID}.log",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 {params}/src/variantCalling/filter_vcf.py {input.vcf} {output}) &> {log}"
+    script:
+        "filter_vcf.py"
 
 
 rule bgzipSNV:

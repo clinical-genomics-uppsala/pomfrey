@@ -1,7 +1,3 @@
-localrules:
-    indexNormalized,
-
-
 rule decompose:
     input:
         vcf="variantCalls/callers/{method}/{sample}_{seqID}.{method}.vcf",

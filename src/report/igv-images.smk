@@ -22,18 +22,15 @@ rule makePassVCF:
         germline=config["bed"]["germline"],
         hemato=config["configCache"]["hemato"],
     output:
-        temp("Results/{sample}_{seqID}/Reports/{sample}_{seqID}.PASS.vcf"),
-    params:
-        config["programdir"]["dir"],
+        vcf=temp("Results/{sample}_{seqID}/Reports/{sample}_{seqID}.PASS.vcf"),
     log:
         "logs/report/{sample}_{seqID}.PASS.vcf.log",
     wildcard_constraints:
         sample="(?!HD829).*",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 {params}/src/report/makePASSvcf.py {input.vcf_snv} {input.vcf_indel} {input.artefact} {input.germline} "
-        "{input.hemato} {output} ) &>{log}"
+    script:
+        "makePASSvcf.py"
 
 
 rule appendPindeltoPASS:
@@ -60,23 +57,21 @@ rule createBatFile:
         bed=config["bed"]["bedfile"],
         ref=config["reference"]["ref"],  #until build own .genome file.
     output:
-        "Results/{sample}_{seqID}/Reports/IGV/{sample}_{seqID}-igv.bat",
+        bat="Results/{sample}_{seqID}/Reports/IGV/{sample}_{seqID}-igv.bat",
     params:
         outfolder="Results/{sample}_{seqID}/Reports/IGV/",
         padding="40",
         sort="base",  #Type of sorting: base, position, strand, quality, sample or readgroup.
         view="squish",  #Type of view, collaps, squished...
         format="svg",  #svg, jpg
-        dir=config["programdir"]["dir"],
     log:
         "logs/report/{sample}_{seqID}-makeBat.log",
     wildcard_constraints:
         sample="(?!HD829).*",
     container:
         config["singularitys"]["python"]
-    shell:
-        "(python3 {params.dir}/src/report/makeBatfile.py {output} {input.vcf} {input.bam} {input.ref} {input.bed} "
-        "{params.outfolder} {params.padding} {params.sort} {params.view} {params.format}) &> {log}"
+    script:
+        "makeBatfile.py"
 
 
 rule igv:
