@@ -42,11 +42,11 @@ rule multiqcBatch:
         ),
         "multiqc/batchQC_{seqID}/{seqID}_stats_mqc.json",
     output:
-        "multiqc/batchQC_{seqID}/{seqID}_MultiQC.html",
+        "multiqc/batchQC_{seqID}/multiqc_DNA.html",
     params:
         extra="-c " + config["configCache"]["multiqc"] + " --ignore *_{seqID}_stats_mqc.csv",
         output_dir="multiqc/batchQC_{seqID}",
-        output_name="{seqID}_MultiQC.html",
+        output_name="multiqc_DNA.html",
     log:
         "logs/report/multiqc/{seqID}.log",
     container:
@@ -57,9 +57,9 @@ rule multiqcBatch:
 
 rule multiqc_cp:
     input:
-        html="multiqc/batchQC_{seqID}/{seqID}_MultiQC.html",
+        html="multiqc/batchQC_{seqID}/multiqc_DNA.html",
     output:
-        html="Results/{seqID}_MultiQC.html",
+        html="Results/multiqc_DNA.html",
     log:
         "logs/report/multiqc_cp_{seqID}.log",
     shell:
