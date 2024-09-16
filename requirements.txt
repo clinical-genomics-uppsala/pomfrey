@@ -4,3 +4,4 @@ pandas==2.1.1
 singularity==3.0.0
 pulp<2.8
 smart_open<7.0.0
+numpy==1.26.4
