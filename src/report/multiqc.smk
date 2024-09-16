@@ -59,7 +59,7 @@ rule multiqc_cp:
     input:
         html="multiqc/batchQC_{seqID}/multiqc_DNA.html",
     output:
-        html="Results/multiqc_DNA.html",
+        html="Results/multiqc_{seqID}.html",
     log:
         "logs/report/multiqc_cp_{seqID}.log",
     shell:
